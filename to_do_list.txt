@@ -1,5 +1,7 @@
 suddividere la mappa sottocampionata in regioni. Quindi creare un file che stabilisca le regioni (aggregare 10x10 celle per ogni regione).
 
+Assegnare un id ad ogni colata lavica.
+
 creare una matrice in cui ogni cella è una lista di nomi/id delle colate che inondano quella cella.
 
 creare una funzione che stabilisca la regione di appartenenza di una cella.
