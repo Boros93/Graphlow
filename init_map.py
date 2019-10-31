@@ -4,6 +4,7 @@ import glob
 import threading
 import time
 from region import Region
+import csv
 # Crea un array 1:1 con le altezze 
 def create_hmap():
     array = []
@@ -54,12 +55,35 @@ def create_hazard_map(n_threads):
     # Salva la mappa sul disco
     np.save('h_map.npy', h_map)
 
+# Crea una struttura dati dove ogni cella ha una lista di simulazioni
 def create_linked_map():
+    # Creo l'array di oggetti
     linked_map = np.empty((2275,1875), dtype=object)
-    for x in range(0, 2275):
-        for y in range(0, 1875):
+    # Inizializzo le coordinate di ogni regione (Serve?)
+    for x in range(0, linked_map.shape[0]):
+        for y in range(0, linked_map.shape[1]):
             linked_map[x][y] = Region(coord=(x,y))
+    # Estrae i paths delle simulazioni
+    sims = glob.glob("Data\\test\\*.txt")
+    for name_file in sims:
+        # print("Process:", name_file)   DEBUG
+        with open(name_file) as in_file:
+            content = in_file.readlines()
+        # Per ogni riga di una simulazione, mette il nome della simulazione nella lista della regione 
+        for c in content:
+            x = np.int(c.split(" ")[0])
+            y = np.int(c.split(" ")[1])
+
+            linked_map[x][y].add_sim(name_file)
+
     return linked_map
+# Salva la mappa in un file csv in formato coord|lista sim
+def save_linked_map(l_map):
+    with open('linked_map.csv', 'w', newline='') as csvfile:
+        filewriter = csv.writer(csvfile, delimiter=',')
+        for x in range(0, l_map.shape[0]):
+            for y in range(0, l_map.shape[1]):
+                filewriter.writerow(l_map[x][y].create_csv_row())
 
 # Cosa esegue ogni thread
 def executeThread(i, sims, h_map, batch_size):
@@ -79,7 +103,8 @@ def executeThread(i, sims, h_map, batch_size):
 # --- Main ---
 t0 = time.time()
 l_map = create_linked_map()
-print("Shape:", l_map.shape)
+print(l_map[99][0].sim)
+save_linked_map(l_map)
 t1 = time.time()
 total_time = t1 - t0
 print("Total time:",total_time)
