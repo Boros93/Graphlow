@@ -6,7 +6,9 @@ class Region:
 
     # Aggiunge una simulazione nel set
     def add_sim(self, name_sim):
-        final_name = name_sim[20:-4]
+        final_name = name_sim[30:-4]
+        first_part, second_part=final_name.split("_")
+        final_name=first_part + second_part
         self.sim.add(final_name)
 
     # Aggiunge una lista di simulazioni al set
