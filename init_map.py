@@ -65,8 +65,10 @@ def create_linked_map():
             linked_map[x][y] = Region(coord=(x,y))
     # Estrae i paths delle simulazioni
     sims = glob.glob("Data\\simulations\\*.txt")
+    file_counter = 0
     for name_file in sims:
-        print("Process:", name_file)   #Debug
+        if file_counter % 1000 == 0:
+            print("Process:", name_file)   #Debug
         with open(name_file) as in_file:
             content = in_file.readlines()
         # Per ogni riga di una simulazione, mette il nome della simulazione nella lista della regione 
@@ -75,16 +77,23 @@ def create_linked_map():
             y = np.int(c.split(" ")[1])
 
             linked_map[x][y].add_sim(name_file)
-
+        file_counter += 1
+    print("Linked Map created")
     return linked_map
 
 # Salva la mappa in un file csv in formato coord|lista sim
 def save_linked_map(l_map):
+    print("Writing csv...")
+    n_row = 0
     with open('linked_map.csv', 'w', newline='') as csvfile:
+        print()
         filewriter = csv.writer(csvfile, delimiter=',')
         for x in range(0, l_map.shape[0]):
             for y in range(0, l_map.shape[1]):
                 filewriter.writerow(l_map[x][y].create_csv_row())
+                n_row += 1
+                if n_row % 10000 == 0:
+                    print("N_row", n_row)
 
 # Cosa esegue ogni thread
 def executeThread(i, sims, h_map, batch_size):
@@ -104,7 +113,6 @@ def executeThread(i, sims, h_map, batch_size):
 # --- Main ---
 t0 = time.time()
 l_map = create_linked_map()
-print(l_map[99][0].sim)
 save_linked_map(l_map)
 t1 = time.time()
 total_time = t1 - t0
