@@ -14,8 +14,8 @@ class Region:
     # Aggiunge una lista di simulazioni al set
     def add_list_sim(self, list_sim):
         for s in list_sim:
-            self.sim = self.sim.union(int(s))
-        self.sim = set(list_sim)
+            s = [int(s)]
+            self.sim = self.sim.union(s)
 
     # Crea la riga da aggiungere al CSV
     def create_csv_row(self):
