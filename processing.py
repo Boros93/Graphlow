@@ -50,6 +50,24 @@ def load_csvmap(filename):
                 
     return linked_map
 
+def down_sampling_map(scale_factor, filename):
+    scaled_map = np.empty((2275/scale_factor , 1875/scale_factor), dtype=object)
+
+    with open filename as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        line_count = 0
+        for row in csv_reader:
+            # Prende le prime due word (sono le coord x e y)
+            coord_x = int(row[0]/scale_factor)
+            coord_y = int(row[1]/scale_factor)
+
+            scaled_map[coord_x][coord_y].add_list_sim(row[2:])
+            line_count+=1
+            if line_count % 100000 == 0 :
+                print("line count = " , line_count)
+
+
+
 linked_map= load_csvmap('linked_map.csv')
 print("Coord=", linked_map[496][1308].coord, " | ", len(linked_map[496][1308].sim))
 scaled_map = down_sampling(5)
