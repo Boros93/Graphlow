@@ -64,9 +64,9 @@ def create_linked_map():
         for y in range(0, linked_map.shape[1]):
             linked_map[x][y] = Region(coord=(x,y))
     # Estrae i paths delle simulazioni
-    sims = glob.glob("Data\\test\\*.txt")
+    sims = glob.glob("Data\\simulations\\*.txt")
     for name_file in sims:
-        # print("Process:", name_file)   DEBUG
+        print("Process:", name_file)   #Debug
         with open(name_file) as in_file:
             content = in_file.readlines()
         # Per ogni riga di una simulazione, mette il nome della simulazione nella lista della regione 
@@ -77,6 +77,7 @@ def create_linked_map():
             linked_map[x][y].add_sim(name_file)
 
     return linked_map
+
 # Salva la mappa in un file csv in formato coord|lista sim
 def save_linked_map(l_map):
     with open('linked_map.csv', 'w', newline='') as csvfile:
