@@ -20,8 +20,9 @@ class Region:
     # Crea la riga da aggiungere al CSV
     def create_csv_row(self):
         row = []
-        row.append(self.coord[0])
-        row.append(self.coord[1])
+        # Decommentare se si vogliono salvare anche le coordinate
+        #row.append(self.coord[0])
+        #row.append(self.coord[1])
         for s in self.sim:
             row.append(s)
         return row
