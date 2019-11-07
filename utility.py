@@ -41,6 +41,6 @@ def write_in_csv(csv_filename, l_map):
                 if line_count % 10000 == 0:
                     print("Line ", line_count, " processed")
     print("CSV written")
-
+"""
 l_map = load_csv_map((455,375), 'scaled_map.csv')
-print(l_map[2][122].sim)
+print(l_map[2][122].sim) """
