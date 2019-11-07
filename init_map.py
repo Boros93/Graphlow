@@ -5,6 +5,7 @@ import threading
 import time
 from region import Region
 import csv
+import utility
 # Crea un array 1:1 con le altezze 
 def create_hmap():
     array = []
@@ -80,13 +81,12 @@ def create_linked_map():
         file_counter += 1
     print("Linked Map created")
     return linked_map
-
+# Rimuovere
 # Salva la mappa in un file csv in formato coord|lista sim
 def save_linked_map(l_map):
     print("Writing csv...")
     n_row = 0
     with open('linked_map.csv', 'w', newline='') as csvfile:
-        print()
         filewriter = csv.writer(csvfile, delimiter=',')
         for x in range(0, l_map.shape[0]):
             for y in range(0, l_map.shape[1]):
