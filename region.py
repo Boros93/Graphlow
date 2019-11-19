@@ -3,6 +3,7 @@ class Region:
     def __init__(self, coord):
         self.coord = coord
         self.sim = set()
+        self.marked = False
 
     # Aggiunge una simulazione nel set
     def add_sim(self, name_sim):
