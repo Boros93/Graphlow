@@ -22,7 +22,7 @@ def create_image_from_map(l_map):
 
     photo.save("Map.png")
 
-l_map = utility.load_csv_map([455,375], "scaled_map.csv")
+l_map = utility.load_csv_map([91,75], ".\\CSVMaps\\scaled_map25x25.csv")
 print("Saving map...")
 create_image_from_map(l_map)
 print("Saved.")

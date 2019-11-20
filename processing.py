@@ -39,6 +39,7 @@ def aggregate(scaled_map):
     while red.empty() == False :
         # lista degli oggetti di tipo regione che costituisce ogni nodo
         region_list = []
+        near_node_list = []
         current_el = red.get()
         if current_el.marked == False:
             green.put(current_el)
@@ -54,8 +55,9 @@ def aggregate(scaled_map):
                             if is_mergeable(current_el, neighbor_el) == True:
                                 green.put(neighbor_el)
                             else:
-                                red.put(neighbor_el)                        
-            node_list.append(region_list)
+                                red.put(neighbor_el)
+                                near_node_list.append(neighbor_el)
+            node_list.append([region_list, near_node_list])        
     return node_list
 
 
@@ -78,15 +80,11 @@ def get_neighbors(coord, scaled_map_x, scaled_map_y):
 our_map = utility.load_csv_map(shapes=[91, 75], map_filename=".\\CSVMaps\\scaled_map25x25.csv")
 our_list_node = aggregate(our_map)
 count = 0
-empty_list = 0
+# empty_list = 0
 for node in our_list_node:
-    for el in node:
-        if not(el.sim):
-            empty_list += 1
     count += 1
 
-print("numero di nodi",count)
-print("Numero liste vuote", empty_list)
+print("numero di nodi", count)
 
 # Creazione mappa scalata
 '''our_map = downsampling_map(scale_factor=25, filename='linked_map.csv')
