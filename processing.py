@@ -15,13 +15,15 @@ def downsampling_map(scale_factor, filename):
     with open(filename) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
+        i = 0
+        j = 0
         for row in csv_reader:
-            # Prende le prime due word (sono le coord x e y)
-            coord_x = int(int(row[0])/scale_factor)
-            coord_y = int(int(row[1])/scale_factor)
-
-            scaled_map[coord_x][coord_y].add_list_sim(row[2:])
+            scaled_map[int(i/scale_factor)][int(j/scale_factor)].add_list_sim(row)
             line_count+=1
+            j += 1
+            if j >= 1875:
+                i += 1
+                j = 0
             if line_count % 10000 == 0 :
                 print("line count = " , line_count)
 
@@ -73,12 +75,22 @@ def get_neighbors(coord, scaled_map_x, scaled_map_y):
                     neighbors.append([coord[0] + x, coord[1] + y])
     return neighbors
 
-our_map = utility.load_csv_map(shapes=[455, 375], map_filename="scaled_map.csv")
+our_map = utility.load_csv_map(shapes=[91, 75], map_filename=".\\CSVMaps\\scaled_map25x25.csv")
 our_list_node = aggregate(our_map)
-count=0
+count = 0
+empty_list = 0
 for node in our_list_node:
+    for el in node:
+        if not(el.sim):
+            empty_list += 1
     count += 1
-print(our_list_node[0][0].sim, our_list_node[0][1].sim)
+
 print("numero di nodi",count)
+print("Numero liste vuote", empty_list)
+
+# Creazione mappa scalata
+'''our_map = downsampling_map(scale_factor=25, filename='linked_map.csv')
+utility.write_in_csv(csv_filename='.\\CSVMaps\\scaled_map25x25.csv', l_map = our_map)'''
+
 print("Finish")
 
