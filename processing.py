@@ -76,7 +76,7 @@ def get_neighbors(coord, scaled_map_x, scaled_map_y):
                 if coord[0] + x in range(0, scaled_map_x) and coord[1] + y in range(0, scaled_map_y):
                     neighbors.append([coord[0] + x, coord[1] + y])
     return neighbors
-
+'''
 our_map = utility.load_csv_map(shapes=[91, 75], map_filename=".\\CSVMaps\\scaled_map25x25.csv")
 our_list_node = aggregate(our_map)
 count = 0
@@ -85,10 +85,10 @@ for node in our_list_node:
     count += 1
 
 print("numero di nodi", count)
-
+'''
 # Creazione mappa scalata
 '''our_map = downsampling_map(scale_factor=25, filename='linked_map.csv')
 utility.write_in_csv(csv_filename='.\\CSVMaps\\scaled_map25x25.csv', l_map = our_map)'''
-
+'''
 print("Finish")
-
+'''
