@@ -1,6 +1,7 @@
 import networkx as nx
 import processing as prx
 import utility
+from statistics import median
 
 # inters(a,b)/union(a,b)
 def get_jaccard_index(set_a, set_b):
@@ -18,6 +19,16 @@ def get_weight(set_a, set_b):
     inters = len(set_a.intersection(set_b))
     weight = inters/len(set_a)
     return weight
+
+def get_median_position(list_region):
+    list_x = []
+    list_y = []
+    for reg in list_region:
+        list_x.append(reg.coord[0])
+        list_y.append(reg.coord[1])
+    median_x = median(list_x)
+    median_y = median(list_y)
+    return median_x, median_y
 
 
 # set parameters
@@ -37,9 +48,10 @@ id_node = 0
 for node in list_node:
     if len(node[0][0].sim) != 0:
         n_sim = len(node[0][0].sim)
+        x, y = get_median_position(node[0])
         list_region = set(node[0])
         list_neighbors = set(node[1])
-        G.add_node(id_node, list_region = list_region, list_neighbors = list_neighbors, n_region = len(list_region), n_sim = n_sim)
+        G.add_node(id_node, list_region = list_region, list_neighbors = list_neighbors, n_region = len(list_region), n_sim = n_sim, x = x, y = y)
         id_node += 1
 print("Done.")
 
@@ -60,13 +72,13 @@ for u in G.nodes():
                     G.add_edge(v, u, weight=weight_vu)
                     n_edges += 2
 
-    if n_edges % 5000 == 0:
-        print("Created ", n_edges, " edges.")
+                    if n_edges % 5000 == 0 and n_edges !=0:
+                        print("Created ", n_edges, " edges.")
 
 G_copy = nx.DiGraph()
 for u, data in G.nodes(data = True):
     list_region = repr((next(iter(G.node[u]["list_region"])).sim))
-    G_copy.add_node(u, label= list_region, n_region = data["n_region"], n_sim = data["n_sim"])
+    G_copy.add_node(u, label= list_region, n_region = data["n_region"], n_sim = data["n_sim"], x = 89- int(data["x"]), y = int(data["y"]))
     
 for node1, node2, data in G.edges(data=True):
     G_copy.add_edge(node1, node2, weight = data['weight'])
