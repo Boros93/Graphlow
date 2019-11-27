@@ -15,11 +15,13 @@ def get_jaccard_index(set_a, set_b):
 # set parameters
 x_shape = 91
 y_shape = 75
+csv_filename = "scaled_map25x25.csv" # set shape to x=91, y=75
+#csv_filename = "graph_test.csv" # set shape to x=5, y=4
 
 print("Creating Graph...")
 G = nx.Graph()
 print("Done.")
-our_map = utility.load_csv_map(shapes=[x_shape, y_shape], map_filename=".\\CSVMaps\\scaled_map25x25.csv")
+our_map = utility.load_csv_map(shapes=[x_shape, y_shape], map_filename = ".\\CSVMaps\\"+csv_filename)
 list_node = prx.aggregate(our_map)
 
 print("Adding nodes...")
@@ -32,26 +34,33 @@ for node in list_node:
 print("Done.")
 
 print("Creating edges...")
+n_edges = 0
 for u in G.nodes():
     for v in G.nodes():
         if u != v:
             if len(G.node[u]["list_region"].intersection(G.node[v]["list_neighbors"])) >= 1:
                 weight = get_jaccard_index(G.node[u]["list_region"], G.node[v]["list_region"])
                 G.add_edge(u,v, weight=weight)
-    if u % 1000 == 0:
-        print("processed ", u, " edges.")
+                n_edges += 1
+
+    if (n_edges % 5000 == 0 and n_edges != 0):
+        print("Created ", n_edges, " edges.")
 
 G_copy = nx.Graph()
-print("copio nodi")
 for u in G.nodes():
-    G_copy.add_node(u)
-print("fatto. copio edges")
-for e in G.edges():
-    G_copy.add_edge(e[0], e[1])
+    list_region = repr((next(iter(G.node[u]["list_region"])).sim))
+    G_copy.add_node(u, label= list_region)
+    
+for node1,node2,data in G.edges(data=True):
+    G_copy.add_edge(node1, node2, weight = data['weight'])
 print("fatto.")
 print("Writing gexf...")
-nx.write_gexf(G_copy, "Etna_graph.gexf")
+
+gexf_filename=csv_filename[0:-3]+"gexf"
+print("Writed in" ,gexf_filename)
+nx.write_gexf(G_copy, ".\\graph_gexf\\"+gexf_filename)
 print("Done.")
+print("Results: ", G_copy.number_of_nodes(), " nodes, ", G_copy.number_of_edges(), " edges.")
 
 
 
