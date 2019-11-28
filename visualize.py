@@ -22,7 +22,20 @@ def create_image_from_map(l_map):
 
     photo.save("Map.png")
 
-l_map = utility.load_csv_map([91,75], ".\\CSVMaps\\scaled_map25x25.csv")
+def create_image_from_npy(npyfilename, imgfilename):
+    np_map = np.array(np.load(npyfilename))
+    img = np.zeros([np_map.shape[0], np_map.shape[1]], dtype=np.uint8)
+    max_value = np.max(np_map)
+    min_value = np.min(np_map)
+    for x in range(np_map.shape[0]):
+        for y in range(np_map.shape[1]):
+            img[x][y] = int((np_map[x][y] - min_value) * (255 / (max_value - min_value)))
+            # print(np_map[x][y])
+    image = Image.fromarray(img)
+    image.save(imgfilename)
+
+#l_map = utility.load_csv_map([91,75], ".\\CSVMaps\\scaled_map25x25.csv")
 print("Saving map...")
-create_image_from_map(l_map)
+#create_image_from_map(l_map)
+create_image_from_npy("Extra\\hazard_map.npy", "hazard_map.png")
 print("Saved.")
