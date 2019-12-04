@@ -41,6 +41,36 @@ def write_in_csv(csv_filename, l_map):
                 if line_count % 10000 == 0:
                     print("Line ", line_count, " processed")
     print("CSV written")
+
+# Conversion coordinate griglia vent in griglia DEM
+def vent_in_dem(notN_filename):
+    # numero di righe della griglia dei vent
+    ROWS_VENT = 73
+    # ampiezza in metri quadrati di ogni cella della griglia vent
+    STEP_VENT = 500
+    # estremi coordinate nord e ovest della griglia dei vent
+    EASTING_MIN_VENT = 482490
+    NORTHING_MAX_VENT = 4191990
+
+    # estremi coordinate nord e ovest della griglia DEM
+    NORTHING_MAX_DEM = 4192500
+    EASTING_MIN_DEM = 482500
+    # ampiezza in metri quadrati di ogni cella della griglia DEM
+    STEP_DEM = 20
+
+    # calcola coordinate della bocca nella griglia vent 
+    id_vent = int(notN_filename[10: -6])-1
+    x_vent = id_vent % ROWS_VENT
+    y_vent = int(id_vent/ROWS_VENT)
+
+    # calcola le coordinate nord e est della bocca
+    northing_vent = NORTHING_MAX_VENT - (STEP_VENT * x_vent)
+    easting_vent = EASTING_MIN_VENT + (STEP_VENT * y_vent)
+    # calcola le coordinate della bocca nella griglia DEM
+    x_dem = int((NORTHING_MAX_DEM - northing_vent) / STEP_DEM)
+    y_dem =int((easting_vent - EASTING_MIN_DEM) / STEP_DEM)
+
+    return (x_dem, y_dem)
 """
 l_map = load_csv_map((455,375), 'scaled_map.csv')
 print(l_map[2][122].sim) """

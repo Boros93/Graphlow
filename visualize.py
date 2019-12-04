@@ -34,8 +34,24 @@ def create_image_from_npy(npyfilename, imgfilename):
     image = Image.fromarray(img)
     image.save(imgfilename)
 
-#l_map = utility.load_csv_map([91,75], ".\\CSVMaps\\scaled_map25x25.csv")
+def print_notn(notN_filename):
+    coord_vent = utility.vent_in_dem(notN_filename)
+    img_filename = "Extra\\not_n\\" + notN_filename
+    notN_filename = "Data\\simulations\\" + notN_filename
+    dem_map= np.zeros((2275, 1875), dtype=np.uint8)
+    with open(notN_filename) as in_file:
+        content = in_file.readlines()
+        # Per ogni riga di una simulazione, mette il nome della simulazione nella lista della regione 
+        for c in content:
+            x = np.int(c.split(" ")[0])
+            y = np.int(c.split(" ")[1])
+            dem_map[x][y] = 75
+    dem_map [coord_vent[0]][coord_vent[1]]=255
+    image = Image.fromarray(dem_map)
+    image.save(img_filename[:-3] + "png")
+
+
+
+
 print("Saving map...")
-#create_image_from_map(l_map)
-create_image_from_npy("Extra\\hazard_map.npy", "hazard_map.png")
 print("Saved.")
