@@ -32,10 +32,15 @@ def create_nodes(G, list_node):
             n_region = len(region_list)
             # Coordinate dei baricentri dei nodi per layout
             x,y = get_median_position(region_list)
+            coord_regions = ""
+            for r in region_list:
+                coord_regions += (str(r.coord)) + "|"
+            #perché si.
+            coord_regions = coord_regions[0:-1]
             # Casting in set delle liste, computazionalmente efficienti
             region_list = set(region_list)
             near_node_list = set(near_node_list)
-            G.add_node(id_node, region_list = region_list, near_node_list = near_node_list, n_region = n_region, n_sim = n_sim, x = x, y = y)
+            G.add_node(id_node, region_list = region_list, near_node_list = near_node_list, n_region = n_region, n_sim = n_sim, x = x, y = y, coord_regions = coord_regions, rank = -1)
             id_node += 1
     print("Done.")
 
@@ -66,10 +71,11 @@ def export_graph(G, filename):
     G_copy = nx.DiGraph()
     for u, data in G.nodes(data=True):
         # Fa il cast da set a stringa per darlo come attributo (gephi non accetta set)
-        region_list = repr((next(iter(G.node[u]["region_list"])).sim))
-        G_copy.add_node(u, label = region_list, n_region = data['n_region'], n_sim = data['n_sim'],
-                        x = 89 - int(data['x']), y = int(data['y']))
-    
+        #region_list = repr((next(iter(G.node[u]["region_list"])).sim))
+        #G_copy.add_node(u, region_list = region_list, n_region = data['n_region'], n_sim = data['n_sim'],
+        #                x = 89 - int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], rank = data["rank"])
+        G_copy.add_node(u, n_region = data['n_region'], n_sim = data['n_sim'],
+                        x = 89 - int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], rank = data["rank"])
     for node1, node2, data in G.edges(data=True):
         G_copy.add_edge(node1, node2, weight = data['weight'])
     
