@@ -17,9 +17,9 @@ else:
     our_map = utility.load_csv_map(shapes=[x_shape, y_shape], map_filename = ".\\CSVMaps\\"+ filename + ".csv")
     G = gm.create_graph(our_map)
     # e lo esporta
-    gm.export_graph(G, filename + ".gexf")
+    G = gm.export_graph(G, filename + ".gexf", is_first_time = True)
 G = ga.set_node_rank(G, "NotN_vent_2233_5.txt")
 
 
 # aggiungere export del grafo
-gm.export_graph(G, filename + "marked.gexf")
+gm.export_graph(G, filename + "marked.gexf", is_first_time = False)

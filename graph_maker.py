@@ -35,7 +35,7 @@ def create_nodes(G, list_node):
             coord_regions = ""
             for r in region_list:
                 coord_regions += (str(r.coord)) + "|"
-            #perché si.
+            #per eliminare l'ultimo delimitatore.
             coord_regions = coord_regions[0:-1]
             # Casting in set delle liste, computazionalmente efficienti
             region_list = set(region_list)
@@ -65,22 +65,28 @@ def create_edges(G):
     print("Done.")
 
 # Metodo per esportare il grafo in formato .gexf (per visualizzare)
-def export_graph(G, filename):
+def export_graph(G, filename, is_first_time):
     print("Writing gexf file...")
     # Crea una copia del grafo per esportarlo con gli attributi 
     G_copy = nx.DiGraph()
     for u, data in G.nodes(data=True):
-        # Fa il cast da set a stringa per darlo come attributo (gephi non accetta set)
-        #region_list = repr((next(iter(G.node[u]["region_list"])).sim))
-        #G_copy.add_node(u, region_list = region_list, n_region = data['n_region'], n_sim = data['n_sim'],
-        #                x = 89 - int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], rank = data["rank"])
-        G_copy.add_node(u, n_region = data['n_region'], n_sim = data['n_sim'],
+        # Fa il cast da set a stringa per darlo come attributo (gephi non accetta set),
+                # solo se il grafo non è stato importato.
+        if is_first_time: 
+            region_list = repr((next(iter(G.node[u]["region_list"])).sim))
+            G_copy.add_node(u, region_list = region_list, n_region = data['n_region'], n_sim = data['n_sim'],
                         x = 89 - int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], rank = data["rank"])
+        else:
+            region_list = data["region_list"]
+            G_copy.add_node(u, region_list = region_list, n_region = data['n_region'], n_sim = data['n_sim'],
+                            x = int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], rank = data["rank"])
+        
     for node1, node2, data in G.edges(data=True):
         G_copy.add_edge(node1, node2, weight = data['weight'])
-    
+
     nx.write_gexf(G_copy, ".\\graph_gexf\\"+filename)
     print("Writed in ", filename)
+    return G_copy
 
 # Metodo per calcolare un eventuale peso: inters(a,b)/union(a,b)
 def get_jaccard_index(set_a, set_b):
