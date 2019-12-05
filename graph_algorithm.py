@@ -3,6 +3,8 @@ import queue
 
 
 def set_node_rank(G, not_n_filename):
+    # inserisco nella lista il nodo per poter azzerarne il rango alla fine.
+    not_n_nodes = []
     rank = 0
     coord_vent = utility.vent_in_dem(not_n_filename)
     # ricerca del nodo che contiene la coordinata della bocca selezionata.
@@ -16,9 +18,10 @@ def set_node_rank(G, not_n_filename):
             continue
         break
     G.node[root]['rank'] = 0
-    
     G.node[root]["marked"] = 1
-    
+    G.node[root]["is_vent"] = 1
+    # inserisco nella lista il nodo per poter azzerarne il rango alla fine.
+    not_n_nodes.append(root)
     next_queue = queue.Queue()
     id_sim =  not_n_filename[10:-4].split('_')[0] + not_n_filename[10:-4].split('_')[1]
 
@@ -28,18 +31,23 @@ def set_node_rank(G, not_n_filename):
 
     while not next_queue.empty():
         rank += 1
-        print("rank= ", rank)
         current_queue = next_to_current(current_queue, next_queue)
         next_queue = queue.Queue()
         while not current_queue.empty():
             n = current_queue.get()
             if "marked" not in G.node[n]:
                 G.node[n]["marked"] = 1
-                print("marked: ", n)
                 G.node[n]["rank"] = rank
+                # inserisco nella lista il nodo per poter azzerarne il rango alla fine.
+                not_n_nodes.append(n)
                 assign_transmit_rank(G, n, rank)
                 for u in get_neighbors(G, n, id_sim):
                     next_queue.put(u)
+    # azzero il rango e resetto marked
+    for n in not_n_nodes:
+        G.node[n]["rank"] = -1
+        del G.node[n]["marked"]  
+    print("max rank= ", rank)
     return G
 
 def assign_transmit_rank(G, u, rank):
@@ -54,6 +62,8 @@ def get_neighbors(G, u, id_sim):
         region_list = region_list.split(', ')
         if id_sim in region_list and "marked" not in G.node[n]:
             list_neighbors.append(n)
+        #elif  id_sim in region_list and G.node[n]["marked"] == 0:
+        #        list_neighbors.append(n)
     return list_neighbors
         
 def next_to_current(current_queue, next_queue):

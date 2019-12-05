@@ -3,6 +3,7 @@ import utility
 import graph_algorithm as ga
 import os
 import networkx as nx
+import glob
 # Set parameters
 x_shape = 91
 y_shape = 75
@@ -18,8 +19,14 @@ else:
     G = gm.create_graph(our_map)
     # e lo esporta
     G = gm.export_graph(G, filename + ".gexf", is_first_time = True)
-G = ga.set_node_rank(G, "NotN_vent_2233_5.txt")
 
+i = 0
+for sim in os.listdir(("Data\\simulations\\")):
+    if i < 1:
+        print ("processo ", sim)
+        G = ga.set_node_rank(G, sim)
+        os.rename("Data\\simulations\\"+sim, "Data\\sim_processed\\" + sim)
+        i +=1
 
 # aggiungere export del grafo
-gm.export_graph(G, filename + "marked.gexf", is_first_time = False)
+gm.export_graph(G, filename + "transmit.gexf", is_first_time = False)
