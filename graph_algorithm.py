@@ -37,9 +37,15 @@ def set_node_rank(G, not_n_filename):
                 G.node[n]["marked"] = 1
                 print("marked: ", n)
                 G.node[n]["rank"] = rank
+                assign_transmit_rank(G, n, rank)
                 for u in get_neighbors(G, n, id_sim):
                     next_queue.put(u)
     return G
+
+def assign_transmit_rank(G, u, rank):
+    for v in G.predecessors(u):
+        if G.node[v]["rank"] == (rank-1):
+            G.edges[v, u]["transmit_rank"] += 1
 
 def get_neighbors(G, u, id_sim):
     list_neighbors = []
@@ -50,8 +56,6 @@ def get_neighbors(G, u, id_sim):
             list_neighbors.append(n)
     return list_neighbors
         
-
-
 def next_to_current(current_queue, next_queue):
     while not next_queue.empty():
         current_queue.put(next_queue.get())

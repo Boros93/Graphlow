@@ -57,8 +57,8 @@ def create_edges(G):
                     weight_vu = get_weight(G.node[v]['region_list'], G.node[u]['region_list'])
                     # Viene creato l'edge solo se il peso è maggiore di 0
                     if weight_uv != 0:
-                        G.add_edge(u, v, weight=weight_uv)
-                        G.add_edge(v, u, weight=weight_vu)
+                        G.add_edge(u, v, weight=weight_uv, transmit_rank = 0)
+                        G.add_edge(v, u, weight=weight_vu, transmit_rank = 0)
                         n_edges += 2
                     if n_edges % 5000 == 0 and n_edges != 0:
                         print("Created", n_edges, " edges")
@@ -75,14 +75,16 @@ def export_graph(G, filename, is_first_time):
         if is_first_time: 
             region_list = repr((next(iter(G.node[u]["region_list"])).sim))
             G_copy.add_node(u, region_list = region_list, n_region = data['n_region'], n_sim = data['n_sim'],
-                        x = 89 - int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], rank = data["rank"])
+                            x = 89 - int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], 
+                            rank = data["rank"])
         else:
             region_list = data["region_list"]
             G_copy.add_node(u, region_list = region_list, n_region = data['n_region'], n_sim = data['n_sim'],
-                            x = int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], rank = data["rank"])
+                            x = int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], 
+                            rank = data["rank"])
         
     for node1, node2, data in G.edges(data=True):
-        G_copy.add_edge(node1, node2, weight = data['weight'])
+        G_copy.add_edge(node1, node2, weight = data['weight'], transmit_rank = data["transmit_rank"])
 
     nx.write_gexf(G_copy, ".\\graph_gexf\\"+filename)
     print("Writed in ", filename)
