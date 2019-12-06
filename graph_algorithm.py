@@ -46,8 +46,7 @@ def set_node_rank(G, not_n_filename):
     # azzero il rango e resetto marked
     for n in not_n_nodes:
         G.node[n]["rank"] = -1
-        del G.node[n]["marked"]  
-    print("max rank= ", rank)
+        del G.node[n]["marked"]
     return G
 
 def assign_transmit_rank(G, u, rank):

@@ -29,7 +29,7 @@ def create_scaled_hmap(scale_factor):
     # Inserisce negli elementi dell'array, la media dell'intorno
     for i in range(scaled_hmap.shape[0]):
         for j in range(scaled_hmap.shape[1]):
-            scaled_hmap[i][j] = np.average(hmap[s*i:s*i+s, s*j:s*j+s])
+            scaled_hmap[i][j] = np.median(hmap[s*i:s*i+s, s*j:s*j+s])
     return scaled_hmap
 
 # Crea una mappa con il numero di invasioni in ogni cella

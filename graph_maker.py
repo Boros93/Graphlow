@@ -1,6 +1,7 @@
 import networkx as nx 
 import processing as prx
 import utility 
+import init_map 
 from statistics import median
 
 
@@ -18,6 +19,10 @@ def create_graph(l_map):
 
 def create_nodes(G, list_node):
     print("Adding nodes...")
+
+    # carico il file DEM per la determinazione dell'altezza del nodo.
+    scaled_hmap = init_map.create_scaled_hmap(25)
+
     id_node = 0
     for node in list_node:
         # Si estraggono le due liste per ogni nodo
@@ -40,7 +45,12 @@ def create_nodes(G, list_node):
             # Casting in set delle liste, computazionalmente efficienti
             region_list = set(region_list)
             near_node_list = set(near_node_list)
-            G.add_node(id_node, region_list = region_list, near_node_list = near_node_list, n_region = n_region, n_sim = n_sim, x = x, y = y, coord_regions = coord_regions, rank = -1, is_vent = 0)
+            # calcolo l'altezza del nodo.
+            height = float(get_height(scaled_hmap, coord_regions))
+
+
+            G.add_node(id_node, region_list = region_list, near_node_list = near_node_list, n_region = n_region,
+                    n_sim = n_sim, x = x, y = y, coord_regions = coord_regions, rank = -1, is_vent = 0, height = height)
             id_node += 1
     print("Done.")
 
@@ -75,13 +85,13 @@ def export_graph(G, filename, is_first_time):
         if is_first_time: 
             region_list = repr((next(iter(G.node[u]["region_list"])).sim))
             G_copy.add_node(u, region_list = region_list, n_region = data['n_region'], n_sim = data['n_sim'],
-                            x = 89 - int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], 
-                            rank = data["rank"], is_vent = data["is_vent"])
+                            x = - int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], 
+                            rank = data["rank"], is_vent = data["is_vent"], height = data["height"])
         else:
             region_list = data["region_list"]
             G_copy.add_node(u, region_list = region_list, n_region = data['n_region'], n_sim = data['n_sim'],
                             x = int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], 
-                            rank = data["rank"], is_vent = data["is_vent"])
+                            rank = data["rank"], is_vent = data["is_vent"], height = data["height"])
         
     for node1, node2, data in G.edges(data=True):
         G_copy.add_edge(node1, node2, weight = data['weight'], transmit_rank = data["transmit_rank"])
@@ -119,5 +129,11 @@ def get_median_position(list_region):
     median_y = median(list_y)
     return median_x, median_y
 
-
-
+def get_height(scaled_hmap, coord_regions):
+    coord_regions = coord_regions.split("|")
+    median_list = []
+    for coord in coord_regions:    
+        coord = utility.cast_coord_attr(coord)
+        median_list.append(scaled_hmap[coord[0]][coord[1]])
+    med = median(median_list)
+    return med

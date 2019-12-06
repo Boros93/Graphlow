@@ -17,16 +17,16 @@ else:
     # Carica la linked map csv
     our_map = utility.load_csv_map(shapes=[x_shape, y_shape], map_filename = ".\\CSVMaps\\"+ filename + ".csv")
     G = gm.create_graph(our_map)
-    # e lo esporta
+    # e la esporta
     G = gm.export_graph(G, filename + ".gexf", is_first_time = True)
 
-i = 0
+'''i = 0
 for sim in os.listdir(("Data\\simulations\\")):
-    if i < 1:
+    if i/100 == 0 or i ==4999:
         print ("processo ", sim)
-        G = ga.set_node_rank(G, sim)
-        os.rename("Data\\simulations\\"+sim, "Data\\sim_processed\\" + sim)
-        i +=1
+    G = ga.set_node_rank(G, sim)
+    os.rename("Data\\simulations\\"+sim, "Data\\sim_processed\\" + sim)
+    i +=1
 
 # aggiungere export del grafo
-gm.export_graph(G, filename + "transmit.gexf", is_first_time = False)
+gm.export_graph(G, filename + "transmit.gexf", is_first_time = False)'''
