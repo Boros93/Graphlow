@@ -8,7 +8,7 @@ import glob
 x_shape = 91
 y_shape = 75
 filename = "scaled_map25x25" # set shape to x=91, y=75
-#csv_filename = "graph_test.csv" # set shape to x=5, y=4
+#filename = "graph_test.csv" # set shape to x=5, y=4
 
 # cariga il grafo se esiste, altrimenti lo crea. 
 if os.path.exists("graph_gexf\\scaled_map25x25.gexf"):
@@ -20,13 +20,12 @@ else:
     # e la esporta
     G = gm.export_graph(G, filename + ".gexf", is_first_time = True)
 
-'''i = 0
+i = 0
 for sim in os.listdir(("Data\\simulations\\")):
-    if i/100 == 0 or i ==4999:
+    if i%1000 == 0 or i ==4999:
         print ("processo ", sim)
     G = ga.set_node_rank(G, sim)
     os.rename("Data\\simulations\\"+sim, "Data\\sim_processed\\" + sim)
     i +=1
 
-# aggiungere export del grafo
-gm.export_graph(G, filename + "transmit.gexf", is_first_time = False)'''
+gm.export_graph(G, filename + "transmit.gexf", is_first_time = False)

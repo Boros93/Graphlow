@@ -2,6 +2,7 @@ import networkx as nx
 import processing as prx
 import utility 
 import init_map 
+import math
 from statistics import median
 
 
@@ -65,13 +66,18 @@ def create_edges(G):
                     # Calcolo pesi degli edge
                     weight_uv = get_weight(G.node[u]['region_list'], G.node[v]['region_list'])
                     weight_vu = get_weight(G.node[v]['region_list'], G.node[u]['region_list'])
+
+                    #calcolo la pendenza dell'arco (u, v)
+                    slope_uv = compute_slope(G, u, v)
+                    slope_vu = -slope_uv
                     # Viene creato l'edge solo se il peso è maggiore di 0
                     if weight_uv != 0:
-                        G.add_edge(u, v, weight=weight_uv, transmit_rank = 0)
-                        G.add_edge(v, u, weight=weight_vu, transmit_rank = 0)
+                        G.add_edge(u, v, weight=weight_uv, transmit_rank = 0, slope = slope_uv)
+                        G.add_edge(v, u, weight=weight_vu, transmit_rank = 0, slope = slope_vu)
                         n_edges += 2
                     if n_edges % 5000 == 0 and n_edges != 0:
                         print("Created", n_edges, " edges")
+                        print("slope u, v =",slope_uv, "slope v, u = ",slope_vu)
     print("Done.")
 
 # Metodo per esportare il grafo in formato .gexf (per visualizzare)
@@ -94,7 +100,7 @@ def export_graph(G, filename, is_first_time):
                             rank = data["rank"], is_vent = data["is_vent"], height = data["height"])
         
     for node1, node2, data in G.edges(data=True):
-        G_copy.add_edge(node1, node2, weight = data['weight'], transmit_rank = data["transmit_rank"])
+        G_copy.add_edge(node1, node2, weight = data['weight'], transmit_rank = data["transmit_rank"], slope = data["slope"])
 
     nx.write_gexf(G_copy, ".\\graph_gexf\\"+filename)
     print("Writed in ", filename)
@@ -137,3 +143,16 @@ def get_height(scaled_hmap, coord_regions):
         median_list.append(scaled_hmap[coord[0]][coord[1]])
     med = median(median_list)
     return med
+
+def node_distance(G, u, v):
+    delta_x = abs(G.node[u]["x"] - G.node[v]["x"])
+    delta_y = abs(G.node[u]["y"] - G.node[v]["y"])
+    distance = math.sqrt(delta_x**2 + delta_y**2)
+    return distance
+    
+
+def compute_slope(G, u, v):
+    delta_h = G.node[u]["height"] - G.node[v]["height"]
+    delta_uv = node_distance(G, u, v)
+    slope = delta_h/delta_uv
+    return slope
