@@ -11,7 +11,7 @@ def downsampling_map(scale_factor, filename):
     for x in range(0, scaled_map.shape[0]):
         for y in range(0, scaled_map.shape[1]):
             scaled_map[x][y] = Region(coord=(x,y))
-    # Bisogna sostituirlo con load_csv_map (attenzione coord)
+            
     with open(filename) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0

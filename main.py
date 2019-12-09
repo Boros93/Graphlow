@@ -4,18 +4,23 @@ import graph_algorithm as ga
 import os
 import networkx as nx
 import glob
+import processing as prx
 # Set parameters
-x_shape = 91
-y_shape = 75
-filename = "scaled_map25x25" # set shape to x=91, y=75
-#filename = "graph_test.csv" # set shape to x=5, y=4
+scale_factor = 25
+x_shape = int(2275/scale_factor)
+y_shape = int(1875/scale_factor)
+filename = "scaled_map"+str(x_shape)+"x"+str(y_shape)
 
 # cariga il grafo se esiste, altrimenti lo crea. 
-if os.path.exists("graph_gexf\\scaled_map25x25.gexf"):
-    G = nx.read_gexf("graph_gexf\\scaled_map25x25.gexf")
+if os.path.exists("graph_gexf\\"+filename+".gexf"):
+    G = nx.read_gexf("graph_gexf\\"+filename+".gexf")
 else: 
     # Carica la linked map csv
-    our_map = utility.load_csv_map(shapes=[x_shape, y_shape], map_filename = ".\\CSVMaps\\"+ filename + ".csv")
+    if os.path.exists(filename+".csv"):    
+        our_map = utility.load_csv_map(shapes=[x_shape, y_shape], map_filename = ".\\CSVMaps\\"+ filename + ".csv")
+    else: 
+        our_map = prx.downsampling_map(scale_factor, filename='CSVMaps\\linked_map.csv')
+        utility.write_in_csv(filename + ".csv", our_map)
     G = gm.create_graph(our_map)
     # e la esporta
     G = gm.export_graph(G, filename + ".gexf", is_first_time = True)
