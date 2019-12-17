@@ -67,16 +67,6 @@ def get_id_from_coord(G, coord):
             if coord_x == int(coord[0]/25) and coord_y == int(coord[1]/25):
                 return u
 
-def export_sim_graph(G_original, not_n_filename):
-    G = set_node_rank(G_original, not_n_filename)
-    for u in G.nodes:
-        for v in G.nodes:
-            if not G.edges[u, v]["transmit_rank"] == 0:
-                G.node[u]["awash"] = True
-                G.node[v]["awash"] = True
-    
-    return G
-
 def eruption(G, volume, id_vent, alpha, threshold):
     volume_step = int(volume/1000)
     volume_remaining = volume
@@ -192,3 +182,13 @@ def eruption(G, volume, id_vent, alpha, threshold):
                             G.node[current_node]["marked"] = True
                             next_queue.put(neigh)'''
             
+
+'''def export_sim_graph(G_original, not_n_filename):
+    G = set_node_rank(G_original, not_n_filename)
+    for u in G.nodes:
+        for v in G.nodes:
+            if not G.edges[u, v]["transmit_rank"] == 0:
+                G.node[u]["awash"] = True
+                G.node[v]["awash"] = True
+    
+    return G'''

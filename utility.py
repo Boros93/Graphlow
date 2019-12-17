@@ -82,3 +82,4 @@ def cast_coord_attr(coord):
     coord_x = int(coord_x)
     coord_y = int(coord_y)
     return coord_x, coord_y
+    
