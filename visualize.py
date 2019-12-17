@@ -50,8 +50,13 @@ def print_notn(notN_filename):
     image = Image.fromarray(dem_map)
     image.save(img_filename[:-3] + "png")
 
-
-
-
-print("Saving map...")
-print("Saved.")
+'''def graph_to_pic(G, pic_filename):
+    pic = Image.open(".\\Extra\\Etna91x75.jpg")
+    for n in G.nodes:
+        if G.node[n]["awash"] == 1:
+            region_list = G.node[n]["coord_regions"].split("|")
+            for s in region_list:
+                coord = utility.cast_coord_attr(s)
+                pic.putpixel((coord[0], coord[1]), 255)
+    photo = Image.fromarray(pic)
+    photo.save(pic_filename)'''

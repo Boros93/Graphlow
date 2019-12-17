@@ -42,8 +42,12 @@ def write_in_csv(csv_filename, l_map):
                     print("Line ", line_count, " processed")
     print("CSV written")
 
+def id_from_not_n(not_n_filename):
+    id_vent = int(not_n_filename[10: -6])-1
+    return id_vent
+
 # Conversion coordinate griglia vent in griglia DEM
-def vent_in_dem(not_n_filename):
+def vent_in_dem(id_vent):
     # numero di righe della griglia dei vent
     ROWS_VENT = 73
     # ampiezza in metri quadrati di ogni cella della griglia vent
@@ -59,7 +63,6 @@ def vent_in_dem(not_n_filename):
     STEP_DEM = 20
 
     # calcola coordinate della bocca nella griglia vent 
-    id_vent = int(not_n_filename[10: -6])-1
     x_vent = id_vent % ROWS_VENT
     y_vent = int(id_vent/ROWS_VENT)
 
