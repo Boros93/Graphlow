@@ -1,5 +1,6 @@
 import utility
 import queue
+import math
 
 def set_node_rank(G, not_n_filename):
     # inserisco nella lista il nodo per poter azzerarne il rango alla fine.
@@ -68,27 +69,39 @@ def get_id_from_coord(G, coord):
                 return u
 
 def eruption(G, volume, id_vent, alpha, threshold):
-    volume_step = int(volume/1000)
+    volume_per_day = [2500, 7500, 5000, 3750, 2500, 1750, 750]
+    #volume_step = int(volume/7)
     volume_remaining = volume
     node_to_visit=[]
     coord_vent = utility.vent_in_dem(id_vent)
     root = get_id_from_coord(G, coord_vent)
     node_to_visit.append(root)
-    G.node[root]["current_flow"] = volume
+    G.node[root]["current_flow"] = volume_per_day[0]
+    volume_remaining -= volume_per_day[0]
+
+    day_count = 1
     while not len(node_to_visit) == 0:
         temp_list = []
-        if volume_remaining > 0:
-            G.node[root]["current_flow"] += volume_step
-            volume_remaining -= volume_step
+        if volume_remaining > 0 and day_count < 7:
+            print("giorno", day_count)
+            G.node[root]["current_flow"] += volume_per_day[day_count]
+            volume_remaining -= volume_per_day[day_count]
+            day_count += 1
         for u in node_to_visit:
             for v in G.successors(u):
-                delta_h = G.node[u]["current_flow"] - G.node[v]["current_flow"]
                 #print("delta_h:", delta_h)
+                u_flow = G.node[u]["current_flow"]
+                v_flow = G.node[v]["current_flow"]
+                u_height = G.node[u]["height"]
+                v_height = G.node[v]["height"]
+                delta_h = u_flow - v_flow
                 if delta_h > threshold:
-                    G.edges[u, v]["forwarding_flow"] = int(G.edges[u, v]["trasmittance"] * alpha * delta_h)
-                    #print("forwarding flow",G.edges[u, v]["forwarding_flow"])
-                    if u not in temp_list and not G.edges[u, v]["forwarding_flow"] == 0:
-                        temp_list.append(u)
+                    if u_flow + u_height > v_flow + v_height:
+                        temp = (u_flow + u_height)/(v_flow + v_height)
+                        G.edges[u, v]["forwarding_flow"] = G.edges[u, v]["trasmittance"] * alpha * delta_h * (1/ (1 + math.exp(-temp)))
+                        if u not in temp_list and G.edges[u, v]["forwarding_flow"] > 0.1:
+                            #print("forwarding flow",G.edges[u, v]["forwarding_flow"], "from", u,"to",v)
+                            temp_list.append(u)
         if len(temp_list) > 0:
             for u in node_to_visit:
                 for v in G.successors(u):
@@ -96,11 +109,11 @@ def eruption(G, volume, id_vent, alpha, threshold):
                         G.node[v]["current_flow"] += G.edges[u, v]["forwarding_flow"]
                         G.node[u]["current_flow"] -= G.edges[u, v]["forwarding_flow"]
                         #print("passo", G.edges[u, v]["forwarding_flow"],"lava da", u,"a", v)
-                        G.edges[u, v]["forwarding_flow"] = 0
+                        G.edges[u, v]["forwarding_flow"] = 0.0
                         if v not in temp_list:
                             temp_list.append(v)
                 #print("flow nel nodo", G.node[u]["current_flow"])
-        #print("flusso nella root", G.node[root]["current_flow"])
+        print("flusso nel nodo root", G.node[root]["current_flow"])
         node_to_visit = []
         node_to_visit = temp_list
     return G
@@ -183,12 +196,11 @@ def eruption(G, volume, id_vent, alpha, threshold):
                             next_queue.put(neigh)'''
             
 
-'''def export_sim_graph(G_original, not_n_filename):
+def sim_to_graph(G_original, not_n_filename):
     G = set_node_rank(G_original, not_n_filename)
-    for u in G.nodes:
-        for v in G.nodes:
-            if not G.edges[u, v]["transmit_rank"] == 0:
-                G.node[u]["awash"] = True
-                G.node[v]["awash"] = True
+    for u, v, data in G.edges(data = True):
+        if not data["transmit_rank"] == 0:
+            G.node[u]["current_flow"] = 1
+            G.node[v]["current_flow"] = 1
     
-    return G'''
+    return G

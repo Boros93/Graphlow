@@ -42,8 +42,8 @@ else:
 
 #if os.path.exists("graph_gexf\\"+filename+".gexf"):
 
-sim_eruption = 2233
+sim_eruption = 3248
 alpha = 1/8
-G = ga.eruption(G, 100000, sim_eruption, alpha, 10)
+G = ga.eruption(G, 25000, sim_eruption, alpha, 10)
 #vi.graph_to_pic(G, "eruption" + str(sim_eruption) + ".jpg")
 gm.export_graph(G, "eruption" + str(sim_eruption) + ".gexf", is_first_time = False)

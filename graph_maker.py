@@ -53,7 +53,7 @@ def create_nodes(G, list_node):
 
             G.add_node(id_node, region_list = region_list, near_node_list = near_node_list, n_region = n_region,
                     n_sim = n_sim, x = x, y = y, coord_regions = coord_regions, rank = -1, is_vent = 0,
-                    height = height, capacity = 10, current_flow = 0, awash = False)
+                    height = height, current_flow = 0.0, awash = False)
             id_node += 1
     print("Done.")
 
@@ -74,8 +74,8 @@ def create_edges(G):
                     slope_vu = -slope_uv
                     # Viene creato l'edge solo se il peso è maggiore di 0
                     if weight_uv != 0:
-                        G.add_edge(u, v, weight=weight_uv, transmit_rank = 0, slope = slope_uv, forwarding_flow = 0, trasmittance = 0.0)
-                        G.add_edge(v, u, weight=weight_vu, transmit_rank = 0, slope = slope_vu, forwarding_flow = 0, trasmittance = 0.0)
+                        G.add_edge(u, v, weight=weight_uv, transmit_rank = 0, slope = slope_uv, forwarding_flow = 0.0, trasmittance = 0.0)
+                        G.add_edge(v, u, weight=weight_vu, transmit_rank = 0, slope = slope_vu, forwarding_flow = 0.0, trasmittance = 0.0)
                         n_edges += 2
                     if n_edges % 5000 == 0 and n_edges != 0:
                         print("Created", n_edges, " edges")
@@ -95,13 +95,13 @@ def export_graph(G, filename, is_first_time):
             G_copy.add_node(u, region_list = region_list, n_region = data['n_region'], n_sim = data['n_sim'],
                             x = - int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], 
                             rank = data["rank"], is_vent = data["is_vent"], height = data["height"], 
-                            capacity = data["capacity"], current_flow = data["current_flow"], awash = data["awash"])
+                            current_flow = data["current_flow"], awash = data["awash"])
         else:
             region_list = data["region_list"]
             G_copy.add_node(u, region_list = region_list, n_region = data['n_region'], n_sim = data['n_sim'],
                             x = int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], 
                             rank = data["rank"], is_vent = data["is_vent"], height = data["height"],
-                            capacity = data["capacity"], current_flow = data["current_flow"], awash = data["awash"])
+                            current_flow = data["current_flow"], awash = data["awash"])
         
     for node1, node2, data in G.edges(data=True):
         G_copy.add_edge(node1, node2, weight = data['weight'], transmit_rank = data["transmit_rank"], slope = data["slope"],
