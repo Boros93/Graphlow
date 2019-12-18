@@ -36,15 +36,6 @@ def graph_to_UTM(G, filename):
             utmfile.write("\n")
 
 
-# real simulation
-sim_filename = "NotN_vent_3248_6.txt"
-G_original = nx.read_gexf("graph_gexf\\scaled_map91x75.gexf")
-G = ga.sim_to_graph(G_original, sim_filename)
-graph_to_UTM(G, destination_path + "ASCII_grid_" + sim_filename[10:])
 
-# eruption
-'''graph_filename = "eruption3248.gexf"
-G = nx.read_gexf("graph_gexf\\" + graph_filename)
-graph_to_UTM(G, destination_path + "ASCII_grid_" + graph_filename[:-4] + "txt")'''
 
 

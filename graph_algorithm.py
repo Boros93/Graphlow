@@ -68,24 +68,23 @@ def get_id_from_coord(G, coord):
             if coord_x == int(coord[0]/25) and coord_y == int(coord[1]/25):
                 return u
 
-def eruption(G, volume, id_vent, alpha, threshold):
-    volume_per_day = [2500, 7500, 5000, 3750, 2500, 1750, 750]
-    #volume_step = int(volume/7)
+def eruption(G, id_vent, volume, n_days, alpha, threshold):
+    volume_per_day = int(volume/n_days)
     volume_remaining = volume
     node_to_visit=[]
     coord_vent = utility.vent_in_dem(id_vent)
     root = get_id_from_coord(G, coord_vent)
     node_to_visit.append(root)
-    G.node[root]["current_flow"] = volume_per_day[0]
-    volume_remaining -= volume_per_day[0]
+    G.node[root]["current_flow"] = volume_per_day
+    volume_remaining -= volume_per_day
 
     day_count = 1
     while not len(node_to_visit) == 0:
         temp_list = []
-        if volume_remaining > 0 and day_count < 7:
+        if volume_remaining > 0:
             print("giorno", day_count)
-            G.node[root]["current_flow"] += volume_per_day[day_count]
-            volume_remaining -= volume_per_day[day_count]
+            G.node[root]["current_flow"] += volume_per_day
+            volume_remaining -= volume_per_day
             day_count += 1
         for u in node_to_visit:
             for v in G.successors(u):
@@ -113,7 +112,7 @@ def eruption(G, volume, id_vent, alpha, threshold):
                         if v not in temp_list:
                             temp_list.append(v)
                 #print("flow nel nodo", G.node[u]["current_flow"])
-        print("flusso nel nodo root", G.node[root]["current_flow"])
+        #print("flusso nel nodo root", G.node[root]["current_flow"])
         node_to_visit = []
         node_to_visit = temp_list
     return G

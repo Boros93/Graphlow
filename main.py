@@ -1,49 +1,38 @@
-import graph_maker as gm
-import utility
-import graph_algorithm as ga
-import os
-import networkx as nx
-import glob
-import processing as prx
-import visualize as vi
-# Set parameters
-scale_factor = 25
-x_shape = int(2275/scale_factor)
-y_shape = int(1875/scale_factor)
-filename = "scaled_map"+str(x_shape)+"x"+str(y_shape)
+import commands
+import sys
 
-# cariga il grafo se esiste, altrimenti lo crea. 
-if os.path.exists("graph_gexf\\"+filename+".gexf"):
-    G = nx.read_gexf("graph_gexf\\"+filename+".gexf")
-else: 
-    # Carica la linked map csv
-    if os.path.exists(".\\CSVMaps\\" + filename + ".csv"):    
-        our_map = utility.load_csv_map(shapes=[x_shape, y_shape], map_filename = ".\\CSVMaps\\"+ filename + ".csv")
-    else: 
-        our_map = prx.downsampling_map(scale_factor, filename='CSVMaps\\scaled_map91x75.csv')
-        utility.write_in_csv(filename + ".csv", our_map)
-    G = gm.create_graph(our_map)
-    # e la esporta
-    G = gm.export_graph(G, filename + ".gexf", is_first_time = True)
+print("========= Welcome in SaveVolcanoPeople ==========")
+print(r"""\                      ooO
+                     ooOOOo
+                   oOOOOOOoooo
+                 ooOOOooo  oooo
+                /vvv\
+               /V V V\ 
+              /V  V  V\          
+             /     V   \          AAAAH!  RUN FOR YOUR LIVES!
+            /      VV   \               /
+  ____     /        VVV  \   	  o          o
+ /\      /        VVVV     \     /-   o     /-
+/  \   /           VVVVVVV   \  /\  -/-    /\
+                    VVVVVVVVVVVVV   /\
+                    """)
+while True:
+    print(r"""Available commands: 
+- man
+- eruption [id_vent] [volume] [n_days] [alpha] [threshold]
+- showsim [id_vent] [class]
+- exit""")
+    cmd = input("Insert a command > ")
+    cmd = cmd.split(" ")
+    if cmd[0] == "eruption":
+        commands.begin_eruption(*cmd[1:])
+    elif cmd[0] == "showsim":
+        commands.show_sim(*cmd[1:])
+    elif cmd[0] == "man":
+        commands.man()
+    elif cmd[0] == "exit":
+        print("Goodbye!")
+        break
+    else:
+        break
 
-
-
-if os.path.exists("graph_gexf\\"+filename+"_normalized.gexf"):
-    G = nx.read_gexf("graph_gexf\\"+filename+"_normalized.gexf") 
-else: 
-    i = 0
-    for sim in os.listdir(("Data\\simulations\\")):
-        if i%1000 == 0 or i ==4999:
-            print ("processo ", sim)
-        G = ga.set_node_rank(G, sim)
-        i +=1
-    G = gm.normalize_trasmittance(G)
-    gm.export_graph(G, filename + "_normalized.gexf", is_first_time = False)
-
-#if os.path.exists("graph_gexf\\"+filename+".gexf"):
-
-sim_eruption = 3248
-alpha = 1/8
-G = ga.eruption(G, 25000, sim_eruption, alpha, 10)
-#vi.graph_to_pic(G, "eruption" + str(sim_eruption) + ".jpg")
-gm.export_graph(G, "eruption" + str(sim_eruption) + ".gexf", is_first_time = False)
