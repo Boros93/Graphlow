@@ -8,19 +8,22 @@ import map_creator as mc
 
 def man():
     print(r"""
-    - exit command: is used to quit the program. Just type 'exit' in command line.
-    - eruption command: is used to launch a real time simulation. To begin an eruption it needs some parameters, in this order:
-            id vent(int) <- id of vent. you can find it in 'Data/simulations/' after 'NotN_vent_' string.
-            volume(int) <- this is the amount of magma of your eruption, default 1000.
-            n_days(int) <- this parameter indicate the eruption duration(in days), default 7.
-            alpha(float) <- parameter to fix magma forwarding, default 0.155
-            threshold(int) <- another parameter to fix magma forwarding, default 1
-                example of usage:  eruption 50000 100 2233 0.11 10
+    - exit: is used to quit the program. Just type 'exit' in command line.
+    - eruption: is used to launch a real time simulation. To begin an eruption it needs some parameters, in this order:
+            id vent(int)    <- integer between 4 and 4814 which indicates the id of vent.
+                               You can find it in 'Data/simulations/' after 'NotN_vent_' string.
+            volume(int)     <- this is the amount of magma of your eruption, default 1000.
+            n_days(int)     <- this parameter indicate the eruption duration(in days), default 7.
+            alpha(float)    <- parameter to fix magma forwarding, default 0.125
+            threshold(int)  <- another parameter to fix magma forwarding, default 1
+                               example of usage:  eruption 50000 100 2233 0.11 10
 
-    - showsim command: is used to show a simulation from MAGMAFLOW. It needs the follow parameters:
-            id vent(int): <- id of vent. you can find it in 'Data/simulations/' after 'NotN_vent_' string.
-            class(int): <- integer in range 1 to 6 that indicates the eruption class. An eruption class is a combination of volume and duration of eruption. default 1
-                example of usage: showsim 2233 6
+    - showsim: is used to show a simulation from MAGFLOW. It needs the follow parameters:
+            id vent(int)    <- integer between 4 and 4814 which indicates the id of vent. 
+                               You can find it in 'Data/simulations/' after 'NotN_vent_' string.
+            class(int)      <- integer in range 1 to 6 that indicates the eruption class. 
+                               An eruption class is a combination of volume and duration of eruption. default 1
+                               example of usage: showsim 2233 6
     """)
 
 def begin_eruption(id_vent = 0, volume = 1000, n_days = 7, alpha = 1/8, threshold = 1):
