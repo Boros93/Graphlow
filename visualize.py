@@ -36,8 +36,8 @@ def create_image_from_npy(npyfilename, imgfilename):
 
 def print_notn(notN_filename):
     coord_vent = utility.vent_in_dem(notN_filename)
-    img_filename = "Extra\\not_n\\" + notN_filename
-    notN_filename = "Data\\simulations\\" + notN_filename
+    img_filename = "Extra/not_n/" + notN_filename
+    notN_filename = "Data/simulations/" + notN_filename
     dem_map= np.zeros((2275, 1875), dtype=np.uint8)
     with open(notN_filename) as in_file:
         content = in_file.readlines()
@@ -51,7 +51,7 @@ def print_notn(notN_filename):
     image.save(img_filename[:-3] + "png")
 
 '''def graph_to_pic(G, pic_filename):
-    pic = Image.open(".\\Extra\\Etna91x75.jpg")
+    pic = Image.open("./Extra/Etna91x75.jpg")
     for n in G.nodes:
         if G.node[n]["awash"] == 1:
             region_list = G.node[n]["coord_regions"].split("|")

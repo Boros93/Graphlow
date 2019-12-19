@@ -27,8 +27,8 @@ def man():
     """)
 
 def begin_eruption(id_vent = 0, volume = 1000, n_days = 7, alpha = 1/8, threshold = 1):
-    if os.path.exists("graph_gexf\\scaled_map91x75_normalized.gexf"):
-        G = nx.read_gexf("graph_gexf\\scaled_map91x75_normalized.gexf")
+    if os.path.exists("graph_gexf/scaled_map91x75_normalized.gexf"):
+        G = nx.read_gexf("graph_gexf/scaled_map91x75_normalized.gexf")
     else:
         print("Graph does not exists.")
         return
@@ -43,7 +43,7 @@ def begin_eruption(id_vent = 0, volume = 1000, n_days = 7, alpha = 1/8, threshol
     print("...done.")
     print("Now you can check 'graph_gexf' folder and open", "eruption_" + str(id_vent) + ".gexf in GEPHI.")
     print("Exporting ASCII grid...")
-    mc.graph_to_UTM(G_, "ASCII_grids\\" + "ASCII_grid_eruption_" + str(id_vent) + ".txt")
+    mc.graph_to_UTM(G_, "ASCII_grids/" + "ASCII_grid_eruption_" + str(id_vent) + ".txt")
     print("...done.")
     print("Now you can check 'ASCII_grids' folder and open", "ASCII_grid_eruption_" + str(id_vent) + ".txt in QGIS.")
 
@@ -54,8 +54,8 @@ def show_sim(id_vent = 0, class_ = 1):
         return
     
     sim_filename = "NotN_vent_" +id_vent + "_" + class_ + ".txt"
-    G_original = nx.read_gexf("graph_gexf\\scaled_map91x75.gexf")
+    G_original = nx.read_gexf("graph_gexf/scaled_map91x75.gexf")
     G = ga.sim_to_graph(G_original, sim_filename)
     print("Exporting ASCII grid...")
-    mc.graph_to_UTM(G, "ASCII_grids\\" + "ASCII_grid_simulation_" + sim_filename[10:])
+    mc.graph_to_UTM(G, "ASCII_grids/" + "ASCII_grid_simulation_" + sim_filename[10:])
     print("...done.")

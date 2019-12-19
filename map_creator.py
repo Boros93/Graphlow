@@ -16,7 +16,7 @@ COLS = 75
 header = ["north: " + str(NORTH), "south: " + str(SOUTH),
             "east: " + str(EAST), "west: " + str(WEST), 
             "rows: " + str(ROWS), "cols: " + str(COLS)]
-destination_path = "ASCII_grids\\"
+destination_path = "ASCII_grids/"
 
 def graph_to_UTM(G, filename):
     utm_map = np.zeros((ROWS, COLS), dtype=int)

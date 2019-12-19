@@ -10,7 +10,7 @@ import utility
 def create_hmap():
     array = []
     # Apre il file con le altezze
-    with open("Data\\DEM_CT.txt") as in_file:
+    with open("Data/DEM_CT.txt") as in_file:
         content = in_file.readlines()
     # Per ogni riga del file, salta le prime 6 righe e splitta le righe estraendo le altezze, saltando l'ultimo carattere \n 
     for row in content[6:]:
@@ -36,7 +36,7 @@ def create_scaled_hmap(scale_factor):
 def create_hazard_map(n_threads):
     h_map = np.zeros((2275, 1875), dtype="float16")
     # Estrae i paths delle simulazioni
-    sims = glob.glob("Data\\simulations\\*.txt")
+    sims = glob.glob("Data/simulations/*.txt")
     # Calcola la dimensione del batch di ogni thread
     batch_size = int(len(sims)/n_threads)
 
@@ -65,7 +65,7 @@ def create_linked_map():
         for y in range(0, linked_map.shape[1]):
             linked_map[x][y] = Region(coord=(x,y))
     # Estrae i paths delle simulazioni
-    sims = glob.glob("Data\\simulations\\*.txt")
+    sims = glob.glob("Data/simulations/*.txt")
     file_counter = 0
     for name_file in sims:
         if file_counter % 1000 == 0:
