@@ -1,8 +1,8 @@
 import commands
 import sys
 
-print("========= Welcome in SaveVolcanoPeople ==========")
-print(r"""\                      ooO
+print("========= Welcome in GRAPHLOW ==========")
+print(r"""\                  ooO
                      ooOOOo
                    oOOOOOOoooo
                  ooOOOooo  oooo
@@ -34,5 +34,5 @@ while True:
         print("Goodbye!")
         break
     else:
-        break
+        print("Insert a valid command.")
 
