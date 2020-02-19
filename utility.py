@@ -1,6 +1,8 @@
 import numpy as np
 from region import Region
 import csv
+import networkx as nx
+import os
 
 # Metodo per caricare una linked map da file CSV
 def load_csv_map(shapes, map_filename):
@@ -83,3 +85,23 @@ def cast_coord_attr(coord):
     coord_y = int(coord_y)
     return coord_x, coord_y
     
+def load_graph():
+    if os.path.exists("graph_gexf/weight_norm_graph.gexf"):
+        G = nx.read_gexf("graph_gexf/weight_norm_graph.gexf")
+        return G
+    else:
+        print("Graph does not exists.")
+        return None
+
+# Metodo per esportare il grafo sottoforma di matrice di adiacenza
+def graph_to_matrix(G):
+    G = load_graph()
+    n_nodes = len(G.nodes())
+
+    M = np.zeros((n_nodes, n_nodes), dtype = float)
+
+    for node in G.nodes():
+        for v in G.successors(node):
+            M[int(node)][int(v)] = G.edges[node, v]["weight"]
+
+    np.save("graph_matrix.npy", M)

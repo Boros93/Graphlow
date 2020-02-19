@@ -33,6 +33,10 @@ while True:
     elif cmd[0] == "exit":
         print("Goodbye!")
         break
+    elif cmd[0] == "test":
+        commands.test()
+    elif cmd[0] == "norm":
+        commands.norm_weight()
     else:
         print("Insert a valid command.")
 

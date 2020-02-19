@@ -176,5 +176,14 @@ def normalize_trasmittance(G):
                 G.edges[u, v]["trasmittance"] =  G.edges[u, v]["transmit_rank"] / denominator
     return G
 
+def normalize_weight(G):
+    for u in G.nodes():
+        sum_weight = 0
+        for v in G.successors(u):
+            u_v_weight = G.edges[u, v]["weight"]
+            sum_weight += u_v_weight
+        for v in G.successors(u):
+            G.edges[u, v]["weight"] =  G.edges[u, v]["weight"] / sum_weight
+    return G
 
             

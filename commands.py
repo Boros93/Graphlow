@@ -4,6 +4,7 @@ import graph_maker as gm
 import os
 import networkx as nx
 import map_creator as mc
+from utility import graph_to_matrix
 
 
 def man():
@@ -59,3 +60,12 @@ def show_sim(id_vent = 0, class_ = 1):
     print("Exporting ASCII grid...")
     mc.graph_to_UTM(G, "ASCII_grids/" + "ASCII_grid_simulation_" + sim_filename[10:])
     print("...done.")
+
+def test():
+    G = nx.read_gexf("graph_gexf/weight_norm_graph.gexf")
+    graph_to_matrix(G)
+
+def norm_weight():
+    G = nx.read_gexf("graph_gexf/scaled_map91x75_normalized.gexf")
+    G = gm.normalize_weight(G)
+    gm.export_graph(G, "weight_norm_graph.gexf", False)
