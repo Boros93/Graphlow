@@ -1,6 +1,7 @@
 import utility
 import queue
 import math
+import random
 
 def set_node_rank(G, not_n_filename):
     # inserisco nella lista il nodo per poter azzerarne il rango alla fine.
@@ -117,7 +118,75 @@ def eruption(G, id_vent, volume, n_days, alpha, threshold):
         node_to_visit = temp_list
     return G
 
+def eruption_new(G, id_vent, threshold):
+    print(threshold)
+    coord_vent = utility.vent_in_dem(id_vent)
+    root = get_id_from_coord(G, coord_vent)
+    print(root)
+    G.node[root]['current_flow'] = 1
+    G.node[root]['awash'] = True
+    node_to_visit = queue.Queue()
+    node_to_visit.put(root)
+    while not node_to_visit.empty():
+        #print("node to visit size:", node_to_visit.qsize())
+        current_node = node_to_visit.get()
+        # print(current_node)
+        for v in G.successors(current_node):
+            if(not G.node[v]['awash']):
+                node_to_visit.put(v)
+                flow = G.node[current_node]['current_flow'] * G.edges[current_node, v]["weight"]
+                if flow > threshold:
+                    G.node[v]['current_flow'] += flow 
+                    G.node[current_node]['current_flow'] -= flow
+                    print(G.node[current_node]['current_flow'])
+                G.node[v]['awash'] = True
+    return G
 
+
+def eruption_prob(G, id_vent, epoch):
+    coord_vent = utility.vent_in_dem(id_vent)
+    root = get_id_from_coord(G, coord_vent)
+    node_to_restart = []
+    for ep in range(0, epoch): 
+        print("Epoch:", ep)
+        G.node[root]['awash'] = True
+        node_to_visit = queue.Queue()
+        node_to_visit.put(root)
+        while not node_to_visit.empty():
+            current_node = node_to_visit.get()
+            awashed = 0
+            max_prob = 0
+            id_max_prob = 0
+            for v in G.successors(current_node):
+                if(not G.node[v]['awash']):
+                    rand_value = random.uniform(0, 0.5)
+                    if rand_value < G.edges[current_node, v]["weight"]:
+                        awashed += 1
+                        G.node[v]['awash'] = True
+                        G.node[v]['current_flow'] += 1
+                        node_to_restart.append(v)
+                        node_to_visit.put(v)
+                if G.edges[current_node, v]["weight"] > max_prob:
+                    max_prob = G.edges[current_node, v]["weight"]
+                    id_max_prob = v
+
+            if id_max_prob != 0:
+                if awashed == 0:
+                    if(not G.node[id_max_prob]['awash']):
+                        rand_value = random.uniform(0,1)
+                        if rand_value < 0:
+                            G.node[id_max_prob]['awash'] = True
+                            node_to_restart.append(id_max_prob)
+                            G.node[id_max_prob]['current_flow'] += 1
+                            node_to_visit.put(v)
+                            print(v, "Awashed dopo")
+        for node in node_to_restart:
+            G.node[node]['awash'] = False
+
+
+    for u in G.nodes():
+        G.node[u]['current_flow'] = G.node[u]['current_flow'] / epoch
+    return G
 
 #seconda implementazione del metodo eruption
 '''def eruption(G, volume, id_vent):
@@ -194,7 +263,6 @@ def eruption(G, id_vent, volume, n_days, alpha, threshold):
                             G.node[current_node]["marked"] = True
                             next_queue.put(neigh)'''
             
-
 def sim_to_graph(G_original, not_n_filename):
     G = set_node_rank(G_original, not_n_filename)
     for u, v, data in G.edges(data = True):

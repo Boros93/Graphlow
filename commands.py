@@ -28,8 +28,8 @@ def man():
     """)
 
 def begin_eruption(id_vent = 0, volume = 1000, n_days = 7, alpha = 1/8, threshold = 1):
-    if os.path.exists("graph_gexf/scaled_map91x75_normalized.gexf"):
-        G = nx.read_gexf("graph_gexf/scaled_map91x75_normalized.gexf")
+    if os.path.exists("graph_gexf/weight_norm_graph.gexf"):
+        G = nx.read_gexf("graph_gexf/weight_norm_graph.gexf")
     else:
         print("Graph does not exists.")
         return
@@ -38,7 +38,8 @@ def begin_eruption(id_vent = 0, volume = 1000, n_days = 7, alpha = 1/8, threshol
         print("\nWARNING! Insert an id_vent\n")
         return
     
-    G_ = ga.eruption(G, int(id_vent), int(volume), int(n_days), float(alpha), int(threshold))
+    #G_ = ga.eruption(G, int(id_vent), int(volume), int(n_days), float(alpha), int(threshold))
+    G_ = ga.eruption_prob(G, int(id_vent), 100)
     print("Exporting graph...")
     gm.export_graph(G_, "eruption_" + str(id_vent) + ".gexf", is_first_time = False)
     print("...done.")

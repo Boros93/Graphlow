@@ -19,7 +19,7 @@ header = ["north: " + str(NORTH), "south: " + str(SOUTH),
 destination_path = "ASCII_grids/"
 
 def graph_to_UTM(G, filename):
-    utm_map = np.zeros((ROWS, COLS), dtype=int)
+    utm_map = np.zeros((ROWS, COLS), dtype=float)
 
     for u, data in G.nodes(data = True):
         for coords in data["coord_regions"].split("|"):
