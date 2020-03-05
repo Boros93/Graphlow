@@ -21,6 +21,9 @@ while True:
 - man
 - eruption [id_vent] [volume] [n_days] [alpha] [threshold]
 - showsim [id_vent] [class]
+- graph_to_matrix
+- norm
+- nodefromvent [id_vent]
 - exit""")
     cmd = input("Insert a command > ")
     cmd = cmd.split(" ")
@@ -33,10 +36,12 @@ while True:
     elif cmd[0] == "exit":
         print("Goodbye!")
         break
-    elif cmd[0] == "test":
+    elif cmd[0] == "graph to matrix": # genera la matrice di adiacenza del grafo
         commands.test()
-    elif cmd[0] == "norm":
+    elif cmd[0] == "norm": # normalizza 
         commands.norm_weight()
+    elif cmd[0] == "nodefromvent":
+        commands.get_node_from_idvent(*cmd[1:])
     else:
         print("Insert a valid command.")
 

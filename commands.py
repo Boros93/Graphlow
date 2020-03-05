@@ -5,6 +5,9 @@ import os
 import networkx as nx
 import map_creator as mc
 from utility import graph_to_matrix
+from utility import vent_in_dem
+from graph_algorithm import get_id_from_coord
+from utility import load_graph
 
 
 def man():
@@ -17,7 +20,7 @@ def man():
             n_days(int)     <- this parameter indicate the eruption duration(in days), default 7.
             alpha(float)    <- parameter to fix magma forwarding, default 0.125
             threshold(int)  <- another parameter to fix magma forwarding, default 1
-                               example of usage:  eruption 50000 100 2233 0.11 10
+                               example of usage:  eruption 2233 1000 7 0.11 10
 
     - showsim: is used to show a simulation from MAGFLOW. It needs the follow parameters:
             id vent(int)    <- integer between 4 and 4814 which indicates the id of vent. 
@@ -39,15 +42,17 @@ def begin_eruption(id_vent = 0, volume = 1000, n_days = 7, alpha = 1/8, threshol
         return
     
     #G_ = ga.eruption(G, int(id_vent), int(volume), int(n_days), float(alpha), int(threshold))
-    G_ = ga.eruption_prob(G, int(id_vent), 100)
-    print("Exporting graph...")
-    gm.export_graph(G_, "eruption_" + str(id_vent) + ".gexf", is_first_time = False)
+    #G_ = ga.eruption_prob(G, int(id_vent), 100)
+    G_ = ga.eruption1(G, int(id_vent), int(volume), int(n_days), float(alpha), int(threshold))
+    print("\nExporting graph...")
+    gm.export_graph(G_, "no_h_control_eruption_" + str(id_vent) + ".gexf", is_first_time = False)
+    #gm.export_graph(G_, "no_h_eruption_" + str(id_vent) + ".gexf", is_first_time = False)
     print("...done.")
-    print("Now you can check 'graph_gexf' folder and open", "eruption_" + str(id_vent) + ".gexf in GEPHI.")
-    print("Exporting ASCII grid...")
+    print("\n\nNow you can check 'graph_gexf' folder and open", "eruption_" + str(id_vent) + ".gexf in GEPHI.")
+    print("\n\nExporting ASCII grid...")
     mc.graph_to_UTM(G_, "ASCII_grids/" + "ASCII_grid_eruption_" + str(id_vent) + ".txt")
     print("...done.")
-    print("Now you can check 'ASCII_grids' folder and open", "ASCII_grid_eruption_" + str(id_vent) + ".txt in QGIS.")
+    print("\n\nNow you can check 'ASCII_grids' folder and open", "ASCII_grid_eruption_" + str(id_vent) + ".txt in QGIS.")
 
 
 def show_sim(id_vent = 0, class_ = 1):
@@ -70,3 +75,11 @@ def norm_weight():
     G = nx.read_gexf("graph_gexf/scaled_map91x75_normalized.gexf")
     G = gm.normalize_weight(G)
     gm.export_graph(G, "weight_norm_graph.gexf", False)
+
+def get_node_from_idvent(id_vent):
+    id_vent = int(id_vent)
+    coord_vent = vent_in_dem(id_vent)
+    G = load_graph()
+    node = get_id_from_coord(G, coord_vent)
+    print(node)
+    return node

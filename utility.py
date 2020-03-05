@@ -94,14 +94,18 @@ def load_graph():
         return None
 
 # Metodo per esportare il grafo sottoforma di matrice di adiacenza
+# Taglio gli archi (v, u) se (v, u).trasmit < (u, v). trasmit
 def graph_to_matrix(G):
     G = load_graph()
     n_nodes = len(G.nodes())
 
     M = np.zeros((n_nodes, n_nodes), dtype = float)
 
-    for node in G.nodes():
-        for v in G.successors(node):
-            M[int(node)][int(v)] = G.edges[node, v]["weight"]
-
+    for i in G.nodes():
+        for j in G.successors(i):
+            if G.edges[j, i]["trasmittance"] > G.edges[i, j]["trasmittance"]:
+                M[int(i)][int(j)] = G.edges[j, i]["trasmittance"]
+            else:
+                M[int(j)][int(i)] = G.edges[i, j]["trasmittance"]
+    
     np.save("graph_matrix.npy", M)
