@@ -3,6 +3,7 @@ from region import Region
 import csv
 import networkx as nx
 import os
+import graph_algorithm as ga
 
 # Metodo per caricare una linked map da file CSV
 def load_csv_map(shapes, map_filename):
@@ -92,6 +93,14 @@ def load_graph():
     else:
         print("Graph does not exists.")
         return None
+
+
+def get_node_from_idvent(id_vent):
+    id_vent = int(id_vent)
+    coord_vent = vent_in_dem(id_vent)
+    G = load_graph()
+    node = ga.get_id_from_coord(G, coord_vent)
+    return node
 
 # Metodo per esportare il grafo sottoforma di matrice di adiacenza
 # Taglio gli archi (v, u) se (v, u).trasmit < (u, v). trasmit

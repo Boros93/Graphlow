@@ -4,8 +4,10 @@ import graph_maker as gm
 import os
 import networkx as nx
 import map_creator as mc
+import probabilistic_algorithm
 from utility import graph_to_matrix
 from utility import vent_in_dem
+from utility import get_node_from_idvent
 from graph_algorithm import get_id_from_coord
 from utility import load_graph
 
@@ -54,6 +56,19 @@ def begin_eruption(id_vent = 0, volume = 1000, n_days = 7, alpha = 1/8, threshol
     print("...done.")
     print("\n\nNow you can check 'ASCII_grids' folder and open", "ASCII_grid_eruption_" + str(id_vent) + ".txt in QGIS.")
 
+def prob_algorithm(id_vent):
+    G = load_graph()
+    G_ = probabilistic_algorithm.eruption_trivector(G, id_vent)
+    gm.export_graph(G_, "prob_eruption_" + str(id_vent) + ".gexf", is_first_time = False)
+    #gm.export_graph(G_, "no_h_eruption_" + str(id_vent) + ".gexf", is_first_time = False)
+    print("...done.")
+    print("\n\nNow you can check 'graph_gexf' folder and open", "eruption_" + str(id_vent) + ".gexf in GEPHI.")
+    print("\n\nExporting ASCII grid...")
+    mc.graph_to_UTM(G_, "ASCII_grids/" + "ASCII_grid_eruption_" + str(id_vent) + ".txt")
+    print("...done.")
+    print("\n\nNow you can check 'ASCII_grids' folder and open", "ASCII_grid_eruption_" + str(id_vent) + ".txt in QGIS.")
+
+
 
 def show_sim(id_vent = 0, class_ = 1):
     if id_vent == 0:
@@ -76,10 +91,6 @@ def norm_weight():
     G = gm.normalize_weight(G)
     gm.export_graph(G, "weight_norm_graph.gexf", False)
 
-def get_node_from_idvent(id_vent):
-    id_vent = int(id_vent)
-    coord_vent = vent_in_dem(id_vent)
-    G = load_graph()
-    node = get_id_from_coord(G, coord_vent)
+def node_from_idvent(id_vent):
+    node = get_node_from_idvent(id_vent)
     print(node)
-    return node

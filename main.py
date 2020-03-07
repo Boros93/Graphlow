@@ -41,7 +41,9 @@ while True:
     elif cmd[0] == "norm": # normalizza 
         commands.norm_weight()
     elif cmd[0] == "nodefromvent":
-        commands.get_node_from_idvent(*cmd[1:])
+        commands.node_from_idvent(*cmd[1:])
+    elif cmd[0] == "proberuption":
+        commands.prob_algorithm(*cmd[1:])
     else:
         print("Insert a valid command.")
 
