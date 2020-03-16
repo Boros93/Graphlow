@@ -43,10 +43,4 @@ ASCII_grids/ASCII_grid_simulation_2233_6.txt
 
 ASCII_grids/ASCII_grid_simulation_2233_6.txt.aux.xml
 
-graph_gexf/eruption_2233.gexf
-
-graph_gexf/eruption_prob_2233.gexf
-
-graph_gexf/scaled_map91x75_normalized_old.gexf
-
-graph_gexf/weight_norm_graph.gexf
+graph_gexf/*
