@@ -4,6 +4,12 @@ import csv
 import networkx as nx
 import os
 import graph_algorithm as ga
+import graph_maker as gm
+import map_creator as mc
+
+from scipy import sparse
+from scipy.stats import uniform
+
 
 # Metodo per caricare una linked map da file CSV
 def load_csv_map(shapes, map_filename):
@@ -118,3 +124,49 @@ def graph_to_matrix(G):
                 M[int(j)][int(i)] = G.edges[i, j]["trasmittance"]
     
     np.save("graph_matrix.npy", M)
+
+# genera una matrice sparsa che rappresenta l'unione delle simulazioni MAGFLOW della bocca specificata
+def unify_sims(id_vent, char):
+    simspath = "Data/simulations/"
+    filelist = os.listdir(simspath)
+    current_vent_files = []
+    
+    for filename in filelist:
+        if int(id_vent) == id_from_not_n(filename) + 1:
+            current_vent_files.append(filename)
+    print("unisco i seguenti file:", current_vent_files)
+    
+    lines_to_write = []
+    for f in current_vent_files:
+        print("processing file", f)
+        with open(simspath + f, 'r') as infile:
+            for line in infile:
+                if not line in lines_to_write:
+                    lines_to_write.append(line)
+
+    flows = np.zeros((91, 75), dtype=float)
+    count = 0
+    for line in lines_to_write:  
+##################### Mostro la percentuale di completamento ##############################################################
+        percentage = (100 * count)/len(lines_to_write)
+        mod = percentage % 5
+        if mod == 0 and not int(percentage) == 0 and not mod < 1:
+            print(str(percentage) + " %")
+###########################################################################################################################
+
+        row, col = line.split()
+        row = int(int(row)/25)
+        col = int(int(col)/25)
+        if char == 'c': # unione con output continuo tra 0 e 1
+            flows[row][col] += 1
+        else:           # unione con output discreto: 0 o 1
+            flows[row][col] = 1
+        count += 1
+    if char == 'c':
+        for r in range(0, flows.shape[0]):
+            for c in range(0, flows.shape[1]):
+                if not flows[r][c] == 0:
+                    flows[r][c] = flows[r][c] / 6
+    sparse_matrix = sparse.csr_matrix(flows)
+    sparse.save_npz("sparse_matrix_" + char + "_" + str(id_vent), sparse_matrix, compressed = True)
+    return sparse_matrix

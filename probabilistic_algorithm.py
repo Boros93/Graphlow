@@ -4,7 +4,7 @@ import networkx as nx
 import numpy as np
 
 def eruption_trivector(G, id_vent):
-    root = utility.get_node_from_idvent(id_vent)
+    root = utility.get_node_from_idvent(str(int(id_vent)-1))
     # Inizializzazione dei tre vettori temporali
     vect1 = np.zeros(len(G.nodes()))
     vect2 = np.zeros(len(G.nodes()))
@@ -23,14 +23,8 @@ def eruption_trivector(G, id_vent):
     key_to_control = "trasmittance" # trasmittance o weight
     
     # Inizio ciclo esterno, cicla fin quando non abbiamo più nodi da esplorare
-    iteration = 0
     while not support_queue.empty():
         print("Nodi da visitare", support_queue.qsize())
-        np.savetxt("temp{}.txt".format(iteration), vect2)
-        iteration += 1
-        '''if iteration == 10:
-            break
-        '''
         
         # Trasferisco i nuovi vicini alla coda interna per poterli calcolare
         while not support_queue.empty():
@@ -48,8 +42,8 @@ def eruption_trivector(G, id_vent):
             increment = 0
             for alpha in range(0, len(pred)):
                 # Inizializzazione delle due produttorie interne (si possono eliminare)
-                product1 = 0
-                product2 = 0
+                product1 = 1
+                product2 = 1
                 for beta in range(0, len(pred)):
                 # memorizzo il valore della trasmittanza dell'arco (beta, j)
                     a = G.edges[str(pred[beta]), j_node][key_to_control]
@@ -78,7 +72,8 @@ def eruption_trivector(G, id_vent):
         # vect3 resta uguale
     # Inserisco i flow calcolati nei nodi 
     for index in range(0, len(vect3)):
-        G.node[str(index)]['current_flow'] = vect3[index]
+        value = float(vect3[index])
+        G.node[str(index)]['current_flow'] = value
     
     return G
 

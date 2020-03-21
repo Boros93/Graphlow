@@ -24,6 +24,7 @@ while True:
 - graph_to_matrix
 - norm
 - nodefromvent [id_vent]
+- unify [id_vent] [d | c]
 - exit""")
     cmd = input("Insert a command > ")
     cmd = cmd.split(" ")
@@ -36,10 +37,15 @@ while True:
     elif cmd[0] == "exit":
         print("Goodbye!")
         break
-    elif cmd[0] == "graph to matrix": # genera la matrice di adiacenza del grafo
+    elif cmd[0] == "test": # comando per testare metodi
         commands.test()
     elif cmd[0] == "norm": # normalizza 
         commands.norm_weight()
+    elif cmd[0] == "unify": # unifica le simulazioni
+        if cmd[2] == 'c' or cmd[2] == 'd':
+            commands.unify(*cmd[1:])
+        else:
+            print("insert 'd' or 'c' after id_vent. 'd' = discrete, 'c' = continuous")
     elif cmd[0] == "nodefromvent":
         commands.node_from_idvent(*cmd[1:])
     elif cmd[0] == "proberuption":

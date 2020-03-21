@@ -10,6 +10,7 @@ from utility import vent_in_dem
 from utility import get_node_from_idvent
 from graph_algorithm import get_id_from_coord
 from utility import load_graph
+from utility import unify_sims
 
 
 def man():
@@ -68,8 +69,6 @@ def prob_algorithm(id_vent):
     print("...done.")
     print("\n\nNow you can check 'ASCII_grids' folder and open", "ASCII_grid_eruption_" + str(id_vent) + ".txt in QGIS.")
 
-
-
 def show_sim(id_vent = 0, class_ = 1):
     if id_vent == 0:
         print("WARNING! Insert an id_vent")
@@ -83,9 +82,11 @@ def show_sim(id_vent = 0, class_ = 1):
     print("...done.")
 
 def test():
-    G = nx.read_gexf("graph_gexf/weight_norm_graph.gexf")
-    graph_to_matrix(G)
-
+    #G = nx.read_gexf("graph_gexf/weight_norm_graph.gexf")
+    #graph_to_matrix(G)
+    return
+    
+    
 def norm_weight():
     G = nx.read_gexf("graph_gexf/scaled_map91x75_normalized.gexf")
     G = gm.normalize_weight(G)
@@ -94,3 +95,7 @@ def norm_weight():
 def node_from_idvent(id_vent):
     node = get_node_from_idvent(id_vent)
     print(node)
+
+def unify(id_vent, char):
+    sparse_matrix = unify_sims(id_vent, char)    
+    mc.matrix_to_UTM(sparse_matrix, id_vent, char)
