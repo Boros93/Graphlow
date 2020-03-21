@@ -2,6 +2,7 @@ import networkx as nx
 import utility
 import numpy as np
 import graph_algorithm as ga
+from scipy import sparse
 
 # ============================ HEADER =============================
 # estremi coordinate nord e ovest della griglia DEM
@@ -35,7 +36,22 @@ def graph_to_UTM(G, filename):
                 utmfile.write(str(utm_map[x][y]) + " ")
             utmfile.write("\n")
 
+def matrix_to_UTM(sparse_matrix, id_vent, char):  #metodo che serve per convertire vettori sparsi in formato utm
+                            #utilizzato per applicare le metriche di fitting
+                            # sparse_matrix è un vettore sparso di uno
+    print("\nExporting UTM file...")
+    sparse_matrix = sparse.load_npz("sparse_matrix_" + char + "_" + str(id_vent) + ".npz")
+    M = sparse_matrix.toarray()
 
 
-
-
+    utm_filename = "ASCII_grids/u" + char + "sim_" + str(id_vent) + ".txt"
+    with open(utm_filename, 'w') as utmfile:
+        for i in range(0, len(header)):
+            utmfile.write(header[i] + "\n")
+    
+        for x in range(0, ROWS):
+            for y in range(0, COLS):
+                utmfile.write(str(M[x][y]) + " ")
+            utmfile.write("\n")
+    print("\nDone.\n")
+    
