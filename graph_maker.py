@@ -107,7 +107,7 @@ def export_graph(G, filename, is_first_time):
         G_copy.add_edge(node1, node2, weight = data['weight'], transmit_rank = data["transmit_rank"], slope = data["slope"],
                         forwarding_flow = data["forwarding_flow"], trasmittance = data["trasmittance"])
 
-    nx.write_gexf(G_copy, "./graph_gexf/eruption" + filename)
+    nx.write_gexf(G_copy, "./graph_gexf/eruption/" + filename)
     print("Writed in ", filename)
     return G_copy
 

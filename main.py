@@ -50,6 +50,13 @@ while True:
         commands.node_from_idvent(*cmd[1:])
     elif cmd[0] == "proberuption":
         commands.prob_algorithm(*cmd[1:])
+    elif cmd[0] == "mae":
+        if len(cmd) == 1:
+            print("Insert a vent id.")
+        else:
+            commands.MAE_metric(*cmd[1:])
+    elif cmd[0] == "hit":
+        commands.hit_metric(*cmd[1:])
     else:
         print("Insert a valid command.")
 

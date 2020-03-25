@@ -40,7 +40,7 @@ def matrix_to_UTM(sparse_matrix, id_vent, char):  #metodo che serve per converti
                             #utilizzato per applicare le metriche di fitting
                             # sparse_matrix è un vettore sparso di uno
     print("\nExporting UTM file...")
-    sparse_matrix = sparse.load_npz("sparse_matrix_" + char + "_" + str(id_vent) + ".npz")
+    sparse_matrix = sparse.load_npz("sparse/sparse_sim_" + char + "_" + str(id_vent) + ".npz")
     M = sparse_matrix.toarray()
 
 

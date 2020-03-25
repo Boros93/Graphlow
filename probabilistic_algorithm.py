@@ -2,6 +2,7 @@ import utility
 import queue
 import networkx as nx 
 import numpy as np
+from scipy import sparse
 
 def eruption_trivector(G, id_vent):
     root = utility.get_node_from_idvent(str(int(id_vent)-1))
@@ -74,6 +75,9 @@ def eruption_trivector(G, id_vent):
     for index in range(0, len(vect3)):
         value = float(vect3[index])
         G.node[str(index)]['current_flow'] = value
+    
+    sparse_vect = sparse.csr_matrix(vect3)
+    sparse.save_npz("sparse/npvect_probErup_" + id_vent + ".npz", sparse_vect, compressed = True)
     
     return G
 
