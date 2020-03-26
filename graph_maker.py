@@ -171,7 +171,7 @@ def normalize_trasmittance(G):
             if max_trasm < u_v_trasm:
                 max_trasm = u_v_trasm
         if max_trasm > 0:
-            denominator = sum_trasm + max_trasm
+            denominator = sum_trasm #+ max_trasm
             for v in G.successors(u):
                 G.edges[u, v]["trasmittance"] =  G.edges[u, v]["transmit_rank"] / denominator
     return G

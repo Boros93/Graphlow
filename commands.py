@@ -70,9 +70,14 @@ def prob_algorithm(id_vent):
     print("...done.")
     print("\n\nNow you can check 'ASCII_grids' folder and open", "ASCII_grid_eruption_" + str(id_vent) + ".txt in QGIS.")
 
-    print("Exporting sparse matrix...")
+    print("\nExporting sparse matrix...")
     utility.vect_to_matrix(id_vent)
     print("done.\n")
+
+    #calcolo metriche mae e hit
+    utility.MAE_metric(id_vent, 'd')
+    utility.MAE_metric(id_vent, 'c')
+    utility.hit_metric(id_vent)
 
 def show_sim(id_vent = 0, class_ = 1):
     if id_vent == 0:
@@ -102,8 +107,8 @@ def unify(id_vent, char):
     sparse_matrix = unify_sims(id_vent, char)    
     mc.matrix_to_UTM(sparse_matrix, id_vent, char)
 
-def MAE_metric(id_vent):
-    utility.MAE_metric(id_vent)
+def MAE_metric(id_vent, unify_type):
+    utility.MAE_metric(id_vent, unify_type)
 
 def hit_metric(id_vent):
     utility.hit_metric(id_vent)

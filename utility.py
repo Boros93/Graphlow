@@ -93,8 +93,8 @@ def cast_coord_attr(coord):
     return coord_x, coord_y
     
 def load_graph():
-    if os.path.exists("graph_gexf/weight_norm_graph.gexf"):
-        G = nx.read_gexf("graph_gexf/weight_norm_graph.gexf")
+    if os.path.exists("graph_gexf/scaled_map91x75_normalized.gexf"):
+        G = nx.read_gexf("graph_gexf/scaled_map91x75_normalized.gexf")
         return G
     else:
         print("Graph does not exists.")
@@ -133,11 +133,11 @@ def unify_sims(id_vent, char):
     for filename in filelist:
         if int(id_vent) == id_from_not_n(filename) + 1:
             current_vent_files.append(filename)
-    print("unisco i seguenti file:", current_vent_files)
+    #print("unisco i seguenti file:", current_vent_files)
     
     lines_to_write = []
     for f in current_vent_files:
-        print("processing file", f)
+        #print("processing file", f)
         with open(simspath + f, 'r') as infile:
             for line in infile:
                 if not line in lines_to_write:
@@ -181,44 +181,60 @@ def get_id_node_from_scaledcoord(G, row, col):
     u = -1
     return u
 
-# ottiene una matrice da un vettore per poter esportare una matrice sparsa (serve a calcolare la metrica di fitting)
-def vect_to_matrix(id_vent): # cambiare in filename del vect
+def vect_to_matrix(id_vent):
     M = np.zeros((91, 75), dtype=float)
     sparse_vect = sparse.load_npz("sparse/npvect_probErup_" + str(id_vent) + ".npz")
     array = sparse_vect.toarray()[0]
-    print(array)
+    G = load_graph()
+
+    for u in G.nodes():
+        regions = G.node[u]["coord_regions"].split("|")
+        for reg in regions:
+            reg_row, reg_col = cast_coord_attr(reg)
+            M[reg_row][reg_col] = array[int(u)]
+
+    sparse_M = sparse.csr_matrix(M)
+    sparse.save_npz("sparse/sparseM_probErup_" + str(id_vent) + ".npz", sparse_M)
+
+# ottiene una matrice da un vettore per poter esportare una matrice sparsa (serve a calcolare la metrica di fitting)
+def vect_to_matrix_old(id_vent): # cambiare in filename del vect
+    M = np.zeros((91, 75), dtype=float)
+    sparse_vect = sparse.load_npz("sparse/npvect_probErup_" + str(id_vent) + ".npz")
+    array = sparse_vect.toarray()[0]
     G = load_graph()
     for row in range(0, M.shape[0]):
-        print (row)
+        if row % 20 ==0 or row == 90:    
+            print ((100 * row)/100,"%")
         for col in range(0, M.shape[1]):
             id_node = get_id_node_from_scaledcoord(G, row, col)
             if not id_node == -1:
                 M[row][col] = array[int(id_node)]
-    print("writing sparse M...\n")
+    
     sparse_M = sparse.csr_matrix(M)
     sparse.save_npz("sparse/sparseM_probErup_" + str(id_vent) + ".npz", sparse_M)
-    print("done.")
 
 # calcola la differenza tra due matrici e ritorna l'errore assoluto medio
 #                                                       |.-> sum(|M1 - M2|)
-def MAE_metric(id_vent):
+def MAE_metric(id_vent, unify_type):
     sparse_path = "sparse/"
     prob_erup_sparse_file = sparse_path + "sparseM_probErup_" + str(id_vent) + ".npz"
     udsim_sparse_file = sparse_path + "sparse_sim_d_" + str(id_vent) + ".npz"
     ucsim_sparse_file = sparse_path + "sparse_sim_c_" + str(id_vent) + ".npz"
+
     if not os.path.isfile(prob_erup_sparse_file):
         print("sparse matrix of this vent does not exists!")
         return
-    if os.path.isfile(udsim_sparse_file):
+    if unify_type == "d":
+        if not os.path.isfile(udsim_sparse_file):
+            unify_sims(id_vent, unify_type)
         M_sim = sparse.load_npz(udsim_sparse_file)
-        M_sim = M_sim.toarray()
-    elif os.path.isfile(ucsim_sparse_file):
+        M_sim = M_sim.toarray() 
+    else:
+        if not os.path.isfile(ucsim_sparse_file):
+            unify_sims(id_vent, unify_type)
         M_sim = sparse.load_npz(ucsim_sparse_file)
         M_sim = M_sim.toarray()
-    else:
-        ####### per generare questo file eseguire il metodo unify ########
-        print("there is no sparse matrix for this simulation")
-        return
+
     M_prob = sparse.load_npz(prob_erup_sparse_file)
     M_prob = M_prob.toarray()
     ######################### calcolo la differenza tra matrici e errore cumulativo ########################################
@@ -232,31 +248,27 @@ def MAE_metric(id_vent):
             cumulative_err += error
     #########################################################################################################################
     MAE = cumulative_err/(error_matrix.shape[0] * error_matrix.shape[1])
-    print("\nMean Absolute Error:", MAE, "\n")
+    print("\nMean Absolute Error (" + unify_type + "):", MAE, "\n")
 
 # calcola un valore che rappresenta una metrica di fitting
 # 
 def hit_metric(id_vent):
-    # creo matrice intersezione
-    # creo matrice unione
     sparse_path = "sparse/"
     graphlow_sparse_file = sparse_path + "sparseM_probErup_" + str(id_vent) + ".npz"
     M_graphlow = sparse.load_npz(graphlow_sparse_file).toarray()
-    sim_sparse_file = sparse_path + "sparse_sim_d_" + str(id_vent) + ".npz"
-    M_sim_sparse = sparse.load_npz(sim_sparse_file).toarray()
-    #inters_M = np.zeros((M_graphlow.shape[0], M_graphlow.shape[1]), dtype='float')
-    #union_M = np.zeros((M_graphlow.shape[0], M_graphlow.shape[1]), dtype='float')
+    udsim_sparse_file = sparse_path + "sparse_sim_d_" + str(id_vent) + ".npz"
+    if not os.path.isfile(udsim_sparse_file):
+        unify_sims(id_vent, 'd')
+    M_sim_sparse = sparse.load_npz(udsim_sparse_file).toarray()
 
     count_inters = 0
     count_union = 0
     for row in range(0, M_graphlow.shape[0]):
         for col in range(0, M_graphlow.shape[1]):
             if M_sim_sparse[row][col] > 0 and M_graphlow[row][col] > 0: 
-                # inters_M[row][col] = 1
                 count_inters += 1
             if M_sim_sparse[row][col] > 0 or M_graphlow[row][col] > 0:
-                # union_M[row][col] = 1
                 count_union += 1
     
-    result = count_inters / count_union
-    print("result:", result)
+    hit = count_inters / count_union
+    print("HIT metric:", hit, "\n")
