@@ -36,15 +36,25 @@ def graph_to_UTM(G, filename):
                 utmfile.write(str(utm_map[x][y]) + " ")
             utmfile.write("\n")
 
-def matrix_to_UTM(sparse_matrix, id_vent, char):  #metodo che serve per convertire vettori sparsi in formato utm
+def matrix_to_UTM(sparse_matrix, id_vent, unify_type = 'c', eruption_method = 0):  #metodo che serve per convertire vettori sparsi in formato utm
                             #utilizzato per applicare le metriche di fitting
                             # sparse_matrix è un vettore sparso di uno
-    print("\nExporting UTM file...")
-    sparse_matrix = sparse.load_npz("sparse/sparse_sim_" + char + "_" + str(id_vent) + ".npz")
+    if eruption_method == 0:
+        sparse_matrix = sparse.load_npz("sparse/sparse_sim_" + unify_type + "_" + str(id_vent) + ".npz")
+        utm_filename = "ASCII_grids/u" + unify_type + "sim_" + str(id_vent) + ".txt"
+    elif eruption_method == 1:
+        sparse_matrix = sparse.load_npz("sparse/M_trivector_" + str(id_vent) + ".npz")
+        utm_filename = "ASCII_grids/trivector_" + str(id_vent) + ".txt"
+
+    elif eruption_method == 2:
+        sparse_matrix = sparse.load_npz("sparse/M_eruption_" + str(id_vent) + ".npz")
+        utm_filename = "ASCII_grids/eruption_" + str(id_vent) + ".txt"
+    elif eruption_method == 3:
+        sparse_matrix = sparse.load_npz("sparse/M_proberuption_" + str(id_vent) + ".npz")
+        utm_filename = "ASCII_grids/proberuption_" + str(id_vent) + ".txt"
+
     M = sparse_matrix.toarray()
-
-
-    utm_filename = "ASCII_grids/u" + char + "sim_" + str(id_vent) + ".txt"
+    
     with open(utm_filename, 'w') as utmfile:
         for i in range(0, len(header)):
             utmfile.write(header[i] + "\n")
@@ -53,5 +63,4 @@ def matrix_to_UTM(sparse_matrix, id_vent, char):  #metodo che serve per converti
             for y in range(0, COLS):
                 utmfile.write(str(M[x][y]) + " ")
             utmfile.write("\n")
-    print("\nDone.\n")
     

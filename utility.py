@@ -133,11 +133,9 @@ def unify_sims(id_vent, char):
     for filename in filelist:
         if int(id_vent) == id_from_not_n(filename) + 1:
             current_vent_files.append(filename)
-    #print("unisco i seguenti file:", current_vent_files)
-    
+            
     lines_to_write = []
     for f in current_vent_files:
-        #print("processing file", f)
         with open(simspath + f, 'r') as infile:
             for line in infile:
                 if not line in lines_to_write:
@@ -181,9 +179,24 @@ def get_id_node_from_scaledcoord(G, row, col):
     u = -1
     return u
 
-def vect_to_matrix(id_vent):
+def vect_to_matrix(id_vent, propagation_method): #aggiungere intero 1/2/3
+    #############################################
+    # propagation_method = 1 ---> trivector     #
+    #                    = 2 ---> eruption      #
+    #                    = 3 ---> proberuption #
+    #############################################
+    if propagation_method == 1:
+        vect_filename = "sparse/trivector_" + str(id_vent) + ".npz"
+        matrix_filename = "sparse/M_trivector_" + str(id_vent) + ".npz"
+    elif propagation_method == 2:
+        vect_filename = "sparse/eruption_" + str(id_vent) + ".npz"
+        matrix_filename = "sparse/M_eruption_" + str(id_vent) + ".npz"
+    elif propagation_method == 3:
+        vect_filename = "sparse/proberuption_" + str(id_vent) + ".npz"
+        matrix_filename = "sparse/M_proberuption_" + str(id_vent) + ".npz"
+
     M = np.zeros((91, 75), dtype=float)
-    sparse_vect = sparse.load_npz("sparse/npvect_probErup_" + str(id_vent) + ".npz")
+    sparse_vect = sparse.load_npz(vect_filename)
     array = sparse_vect.toarray()[0]
     G = load_graph()
 
@@ -194,7 +207,7 @@ def vect_to_matrix(id_vent):
             M[reg_row][reg_col] = array[int(u)]
 
     sparse_M = sparse.csr_matrix(M)
-    sparse.save_npz("sparse/sparseM_probErup_" + str(id_vent) + ".npz", sparse_M)
+    sparse.save_npz(matrix_filename, sparse_M)
 
 # ottiene una matrice da un vettore per poter esportare una matrice sparsa (serve a calcolare la metrica di fitting)
 def vect_to_matrix_old(id_vent): # cambiare in filename del vect
@@ -226,12 +239,14 @@ def MAE_metric(id_vent, unify_type):
         return
     if unify_type == "d":
         if not os.path.isfile(udsim_sparse_file):
-            unify_sims(id_vent, unify_type)
+            tmp_M = unify_sims(id_vent, unify_type)
+            mc.matrix_to_UTM(tmp_M, id_vent, unify_type)
         M_sim = sparse.load_npz(udsim_sparse_file)
         M_sim = M_sim.toarray() 
     else:
         if not os.path.isfile(ucsim_sparse_file):
-            unify_sims(id_vent, unify_type)
+            tmp_M = unify_sims(id_vent, unify_type)
+            mc.matrix_to_UTM(tmp_M, id_vent, unify_type)
         M_sim = sparse.load_npz(ucsim_sparse_file)
         M_sim = M_sim.toarray()
 
@@ -240,7 +255,6 @@ def MAE_metric(id_vent, unify_type):
     ######################### calcolo la differenza tra matrici e errore cumulativo ########################################
     cumulative_err = 0
     error_matrix = np.zeros((M_sim.shape[0], M_sim.shape[1]), dtype='float')
-    #error_matrix = np.subtract(M_sim, M_prob)
     for row in range(0, M_sim.shape[0]):
         for col in range(0, M_sim.shape[1]):
             error = abs(M_sim[row][col] - M_prob[row][col])
@@ -269,6 +283,123 @@ def hit_metric(id_vent):
                 count_inters += 1
             if M_sim_sparse[row][col] > 0 or M_graphlow[row][col] > 0:
                 count_union += 1
-    
     hit = count_inters / count_union
     print("HIT metric:", hit, "\n")
+
+'''
+   | eruption | real  |
+TP |     V    |   V   |
+TN |     X    |   X   |
+FP |     V    |   X   |
+FN |     X    |   V   |
+'''
+def get_confusion_matrix_indexes(id_vent, propagation_method):
+    #############################################
+    # propagation_method = 1 ---> trivector     #
+    #                    = 2 ---> eruption      #
+    #                    = 3 ---> proberuption #
+    #############################################
+    if propagation_method == 1:
+        graphlow_sparse_file = "sparse/M_trivector_" + str(id_vent) + ".npz"
+    elif propagation_method == 2:
+        graphlow_sparse_file = "sparse/M_eruption_" + str(id_vent) + ".npz"
+    elif propagation_method == 3:
+        graphlow_sparse_file = "sparse/M_proberuption_" + str(id_vent) + ".npz"
+    
+    M_graphlow = sparse.load_npz(graphlow_sparse_file).toarray()
+    # real[row][col] = 0 o 1
+    udsim_sparse_file = "sparse/sparse_sim_d_" + str(id_vent) + ".npz"
+    # real[row][col] = TRA 0 e 1
+    ucsim_sparse_file = "sparse/sparse_sim_c_" + str(id_vent) + ".npz"
+    
+    if not os.path.isfile(udsim_sparse_file):
+        sparse_matrix = unify_sims(id_vent, 'd')
+        mc.matrix_to_UTM(sparse_matrix, id_vent, 'd')
+    if not os.path.isfile(ucsim_sparse_file):
+        unify_sims(id_vent, 'c')
+        mc.matrix_to_UTM(sparse_matrix, id_vent, 'c')
+        
+    M_real_d = sparse.load_npz(udsim_sparse_file).toarray()
+    M_real_c = sparse.load_npz(ucsim_sparse_file).toarray()
+    
+
+    fp = 0      # Contatore di fp booleano
+    tp = 0      # Contatore di tp booleano
+    tn = 0      # Contatore di tn booleano
+    fn = 0      # Contatore di fn booleano
+    
+    '''
+    fp_c = 0    # ACCUMULATORE fp
+    tp_c = 0    # ACCUMULATORE tp
+    tn_c = 0    # ACCUMULATORE tn
+    fn_c = 0    # ACCUMULATORE fn
+    '''
+
+    # Errori per MAE
+    cumulative_err_d = 0
+    cumulative_err_c = 0
+
+    for row in range(0, M_graphlow.shape[0]):
+        for col in range(0, M_graphlow.shape[1]):
+            if M_graphlow[row][col] > 0 and M_real_d[row][col] > 0:     # tp
+                tp += 1
+            if M_graphlow[row][col] > 0 and M_real_d[row][col] == 0:    # fp
+                fp += 1
+            if M_graphlow[row][col] == 0 and M_real_d[row][col] == 0:   # tn
+                tn += 1
+            if M_graphlow[row][col] == 0 and M_real_d[row][col] > 0:   # fn 
+                fn += 1
+
+            error_d = abs(M_real_d[row][col] - M_graphlow[row][col])
+            error_c = abs(M_real_c[row][col] - M_graphlow[row][col])
+            cumulative_err_d += error_d
+            cumulative_err_c += error_c
+
+    ################# calcolo la metrica MAE ########################  
+    mae_d = cumulative_err_d/(M_real_d.shape[0] * M_real_d.shape[1])#
+    mae_c = cumulative_err_c/(M_real_c.shape[0] * M_real_c.shape[1])#
+    #################################################################
+    return tp, tn, fp, fn, mae_d, mae_c
+
+# precision = PPV = tp/(tp + fp)
+def ppv(tp, fp):
+    precision = tp/ (tp + fp)
+    return precision
+
+# TPR = RECALL = tp/(tp + fn)
+def tp_rate(tp, fn):
+    tpr = tp/ (tp + fn)
+    return tpr
+
+# hit_rate = tp / (fp + fn + tp)
+def hit_rate(tp, fp, fn):
+    hit = tp / (fp + fn + tp)
+    return hit
+
+# acc = (tp + tn) / (tp + fp + tn + fn)
+def accuracy(tp, tn, fp, fn):
+    acc = (tp + tn) / (tp + fp + tn + fn)
+    return acc
+
+def f1(precision, tpr):
+    f1 = 2 * precision * tpr / (precision + tpr)
+    return f1
+
+def compute_metrics(id_vent, propagation_method):
+    tp, tn, fp, fn, mae_d, mae_c = get_confusion_matrix_indexes(id_vent, propagation_method)
+    precision = ppv(tp, fp)
+    #print("\nPPV =", precision)
+    
+    tpr = tp_rate(tp, fn)
+    #print("\nTPR =", tpr)
+    
+    acc = accuracy(tp, tn, fp, fn)
+    #print("\nacc = ", acc)
+    
+    hit = hit_rate(tp, fp, fn)
+    #print("\nhit = ", hit)
+    
+    #print("\nmae_d = ", mae_d)
+    #print("\nmae_c = ", mae_c)
+    F1 = f1(precision,tpr)
+    return precision, tpr, acc, hit, mae_d, mae_c, F1

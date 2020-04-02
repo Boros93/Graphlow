@@ -12,6 +12,7 @@ from graph_algorithm import get_id_from_coord
 from utility import load_graph
 from utility import unify_sims
 import utility
+from scipy import sparse
 
 
 def man():
@@ -34,50 +35,90 @@ def man():
                                example of usage: showsim 2233 6
     """)
 
-def begin_eruption(id_vent = 0, volume = 1000, n_days = 7, alpha = 1/8, threshold = 1):
-    if os.path.exists("graph_gexf/weight_norm_graph.gexf"):
-        G = nx.read_gexf("graph_gexf/weight_norm_graph.gexf")
-    else:
-        print("Graph does not exists.")
+def prob_eruption_(id_vent = 0, epoch = 100):
+    G = load_graph()
+    if id_vent == 0:
+        print("\nWARNING! Insert an id_vent\n")
         return
+    print("\nPROBERUPTION", id_vent )
+    G_ = ga.prob_eruption(G, int(id_vent), epoch)
+    gm.export_graph(G_, "proberuption_" + str(id_vent) + ".gexf", is_first_time = False)
+    print("GRAPH\tOK")
+    
+    #############################################
+    # propagation_method = 1 ---> trivector     #
+    #                    = 2 ---> eruption      #
+    #                    = 3 ---> proberuption  #
+    #############################################
+    utility.vect_to_matrix(id_vent, 3)
+    print("MATRIX\tOK")
+    
+    sparse_matrix = sparse.load_npz("sparse/M_proberuption_" + str(id_vent) + ".npz")
+    mc.matrix_to_UTM(sparse_matrix, id_vent, eruption_method=3)
+    print("ASCII\tOK")
+       
+    #calcolo metriche
+    precision, tpr, acc, hit, mae_d, mae_c, f1 = utility.compute_metrics(id_vent, 3)
+    print("precision: " + str(precision), "\ntpr: " + str(tpr), "\nacc: " + str(acc),
+                    "\nhit: " + str(hit), "\nmae_d: " + str(mae_d), "\nmae_c: " + str(mae_c), "\nf1: " + str(f1))
+
+
+def eruption1(id_vent = 0, volume = 1000, n_days = 7, alpha = 1/8):
     
     if id_vent == 0:
         print("\nWARNING! Insert an id_vent\n")
         return
-    
-    #G_ = ga.eruption(G, int(id_vent), int(volume), int(n_days), float(alpha), int(threshold))
-    #G_ = ga.eruption_prob(G, int(id_vent), 100)
-    G_ = ga.eruption1(G, int(id_vent), int(volume), int(n_days), float(alpha), int(threshold))
-    print("\nExporting graph...")
-    gm.export_graph(G_, "no_h_control_eruption_" + str(id_vent) + ".gexf", is_first_time = False)
-    #gm.export_graph(G_, "no_h_eruption_" + str(id_vent) + ".gexf", is_first_time = False)
-    print("...done.")
-    print("\n\nNow you can check 'graph_gexf' folder and open", "eruption_" + str(id_vent) + ".gexf in GEPHI.")
-    print("\n\nExporting ASCII grid...")
-    mc.graph_to_UTM(G_, "ASCII_grids/" + "ASCII_grid_eruption_" + str(id_vent) + ".txt")
-    print("...done.")
-    print("\n\nNow you can check 'ASCII_grids' folder and open", "ASCII_grid_eruption_" + str(id_vent) + ".txt in QGIS.")
-
-def prob_algorithm(id_vent):
+    print("\nERUPTION", id_vent )
     G = load_graph()
-    G_ = probabilistic_algorithm.eruption_trivector(G, id_vent)
-    gm.export_graph(G_, "prob_eruption_" + str(id_vent) + ".gexf", is_first_time = False)
-    #gm.export_graph(G_, "no_h_eruption_" + str(id_vent) + ".gexf", is_first_time = False)
-    print("...done.")
-    print("\n\nNow you can check 'graph_gexf' folder and open", "eruption_" + str(id_vent) + ".gexf in GEPHI.")
-    print("\n\nExporting ASCII grid...")
-    mc.graph_to_UTM(G_, "ASCII_grids/" + "ASCII_grid_eruption_" + str(id_vent) + ".txt")
-    print("...done.")
-    print("\n\nNow you can check 'ASCII_grids' folder and open", "ASCII_grid_eruption_" + str(id_vent) + ".txt in QGIS.")
+    G_ = ga.eruption1(G, int(id_vent), int(volume), int(n_days), float(alpha))
+    gm.export_graph(G_, "eruption_" + str(id_vent) + ".gexf", is_first_time = False)
+    print("GRAPH\tOK")
+    
+    #############################################
+    # propagation_method = 1 ---> trivector     #
+    #                    = 2 ---> eruption      #
+    #                    = 3 ---> proberuption  #
+    #############################################
+    utility.vect_to_matrix(id_vent, 2)
+    print("MATRIX\tOK")
 
-    print("\nExporting sparse matrix...")
-    utility.vect_to_matrix(id_vent)
-    print("done.\n")
+    sparse_matrix = sparse.load_npz("sparse/M_eruption_" + str(id_vent) + ".npz")
+    mc.matrix_to_UTM(sparse_matrix, id_vent, eruption_method=2)
+    #mc.graph_to_UTM(G_, "ASCII_grids/" + "eruption_" + str(id_vent) + ".txt")
+    ("ASCII\tOK")
 
-    #calcolo metriche mae e hit
-    utility.MAE_metric(id_vent, 'd')
-    utility.MAE_metric(id_vent, 'c')
-    utility.hit_metric(id_vent)
+   
+    #calcolo metriche
+    precision, tpr, acc, hit, mae_d, mae_c, f1 = utility.compute_metrics(id_vent, 2)
+    print("precision: " + str(precision), "\ntpr: " + str(tpr), "\nacc: " + str(acc),
+                    "\nhit: " + str(hit), "\nmae_d: " + str(mae_d), "\nmae_c: " + str(mae_c), "\nf1: " + str(f1))
+
+
+def trivector(id_vent = 0, threshold = 0.001): 
+    if id_vent == 0:
+        print("\nWARNING! Insert an id_vent\n")
+        return
+    print("\nTRIVECTOR", id_vent )
+    G = load_graph()
+    G_ = probabilistic_algorithm.eruption_trivector(G, id_vent, float(threshold))
+    gm.export_graph(G_, "trivector_" + str(id_vent) + ".gexf", is_first_time = False)
+    print("GRAPH\tOK")
+    utility.vect_to_matrix(id_vent, 1)
+    print("MATRIX\tOK")
+    sparse_matrix = sparse.load_npz("sparse/M_trivector_" + str(id_vent) + ".npz")
+    mc.matrix_to_UTM(sparse_matrix, id_vent, eruption_method=1)
+    #mc.graph_to_UTM(G_, "ASCII_grids/" + "trivector_" + str(id_vent) + ".txt")
+    print("ASCII\tOK")
+
+    #############################################
+    # propagation_method = 1 ---> trivector     #
+    #                    = 2 ---> eruption      #
+    #                    = 3 ---> proberuption  #
+    #############################################
+    #calcolo metriche
+    precision, tpr, acc, hit, mae_d, mae_c, f1 = utility.compute_metrics(id_vent, 1)
+    print("precision: " + str(precision), "\ntpr: " + str(tpr), "\nacc: " + str(acc),
+                    "\nhit: " + str(hit), "\nmae_d: " + str(mae_d), "\nmae_c: " + str(mae_c), "\nf1: " + str(f1))
 
 def show_sim(id_vent = 0, class_ = 1):
     if id_vent == 0:
@@ -90,9 +131,11 @@ def show_sim(id_vent = 0, class_ = 1):
     mc.graph_to_UTM(G, "ASCII_grids/" + "ASCII_grid_simulation_" + sim_filename[10:])
     print("...done.")
 
-def test():
-    utility.hit_metric(666)
-    return
+def test(id_vent = 0, volume = 1000, n_days = 7, alpha = 1/8, threshold = 1):
+    #test per esportare nuovi grafi
+    '''G = load_graph()
+    G = gm.sigmoid_norm_tr_rank(G)
+    gm.export_graph(G, "scaled_map91x75_sigmoid_normalized.gexf", is_first_time = False)'''
     
 def norm_weight():
     G = nx.read_gexf("graph_gexf/scaled_map91x75_normalized.gexf")
@@ -103,12 +146,67 @@ def node_from_idvent(id_vent):
     node = get_node_from_idvent(id_vent)
     print(node)
 
-def unify(id_vent, char):
+def unify(id_vent, char = 'c'):
     sparse_matrix = unify_sims(id_vent, char)    
     mc.matrix_to_UTM(sparse_matrix, id_vent, char)
 
 def MAE_metric(id_vent, unify_type):
     utility.MAE_metric(id_vent, unify_type)
 
-def hit_metric(id_vent):
-    utility.hit_metric(id_vent)
+def compare_eruption(id_vent): #capire come poter passare bene i parametri di tutti e tre i metodi
+    # avvia i metodi di propagazione e mette a confronto le metriche.
+
+    #parametri trivector
+    threshold = input("Insert threshold for trivector > ")
+    if threshold == "":
+        threshold = 0.001
+    else:
+        threshold = float(threshold)
+
+    #parametri eruption
+    volume = input("Insert volume for eruption > ")
+    if volume == "":
+        volume = 1000
+    else:
+        volume = int(volume)
+
+    n_days = input("Insert #days for eruption > ")
+    if n_days == "":
+        n_days = 7
+    else:
+        n_days = int(n_days)
+
+    alpha = input("Insert alpha for eruption > ")
+    if alpha == "":
+        alpha = 0.125
+    else:
+        alpha = float(alpha)
+    #parametri proberuption
+    epoch = input("Insert epoch for proberuption > ")
+    if epoch == "":
+        epoch = 100
+    else:
+        epoch = int(epoch)
+    
+    #############################################
+    # propagation_method = 1 ---> trivector     #
+    #                    = 2 ---> eruption      #
+    #                    = 3 ---> proberuption  #
+    #############################################
+    trivector(id_vent, threshold)
+    tri_precision, tri_tpr, tri_acc, tri_hit, tri_mae_d, tri_mae_c, tri_f1 = utility.compute_metrics(id_vent, 1)
+
+    eruption1(id_vent, volume, n_days, alpha)
+    eru_precision, eru_tpr, eru_acc, eru_hit, eru_mae_d, eru_mae_c, eru_f1 = utility.compute_metrics(id_vent, 2)
+    
+    prob_eruption_(id_vent, epoch)
+    pr_eru_precision, pr_eru_tpr, pr_eru_acc, pr_eru_hit, pr_eru_mae_d, pr_eru_mae_c, pr_eru_f1 = utility.compute_metrics(id_vent, 3)
+
+    print("\nIn order: trivector, eruption, proberuption")
+    print("PRECISION:\n", tri_precision, "\n", eru_precision, "\n", pr_eru_precision,"\n")
+    print("\nTPR:\n", tri_tpr,"\n", eru_tpr,"\n", pr_eru_tpr,"\n")
+    print("\nACC\n", tri_acc,"\n", eru_acc,"\n", pr_eru_acc,"\n")
+    print("\nHIT:\n", tri_hit,"\n", eru_hit,"\n", pr_eru_hit,"\n")
+    print("\nMAE_D:\n", tri_mae_d,"\n", eru_mae_d,"\n", pr_eru_mae_d,"\n")
+    print("\nMAE_C:\n", tri_mae_c,"\n", eru_mae_c,"\n", pr_eru_mae_c,"\n")
+    print("\nF1:\n", tri_f1,"\n", eru_f1,"\n", pr_eru_f1,"\n")

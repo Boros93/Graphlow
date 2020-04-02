@@ -2,6 +2,8 @@ import utility
 import queue
 import math
 import random
+from scipy import sparse
+import numpy as np
 
 def set_node_rank(G, not_n_filename):
     # inserisco nella lista il nodo per poter azzerarne il rango alla fine.
@@ -69,7 +71,7 @@ def get_id_from_coord(G, coord):
             if coord_x == int(coord[0]/25) and coord_y == int(coord[1]/25):
                 return u
 
-def eruption(G, id_vent, volume, n_days, alpha, threshold):
+'''def eruption(G, id_vent, volume, n_days, alpha, threshold):
     volume_per_day = int(volume/n_days)
     volume_remaining = volume
     node_to_visit=[]
@@ -116,15 +118,15 @@ def eruption(G, id_vent, volume, n_days, alpha, threshold):
         #print("flusso nel nodo root", G.node[root]["current_flow"])
         node_to_visit = []
         node_to_visit = temp_list
-    return G
+    return G'''
 
 # eruption con controlli su transmitrank e senza controlli su altezze
 # transmit_rank(u, v) - transmit_rank(v, u) > epsilon 
-def eruption1(G, id_vent, volume, n_days, alpha, threshold):
+def eruption1(G, id_vent, volume, n_days, alpha):
     volume_per_day = int(volume/n_days)
     volume_remaining = volume
     node_to_visit=[]
-    coord_vent = utility.vent_in_dem(id_vent)
+    coord_vent = utility.vent_in_dem(id_vent - 1)
     root = get_id_from_coord(G, coord_vent)
     node_to_visit.append(root)
     G.node[root]["current_flow"] = volume_per_day
@@ -135,7 +137,6 @@ def eruption1(G, id_vent, volume, n_days, alpha, threshold):
     while not len(node_to_visit) == 0:
         temp_list = []
         if volume_remaining > 0:
-            print("giorno", day_count)
             G.node[root]["current_flow"] += volume_per_day
             volume_remaining -= volume_per_day
             day_count += 1
@@ -146,12 +147,14 @@ def eruption1(G, id_vent, volume, n_days, alpha, threshold):
                 v_flow = G.node[v]["current_flow"]
                 u_height = G.node[u]["height"]
                 v_height = G.node[v]["height"]
-                delta_h = u_flow - v_flow
-                temp = (u_flow + u_height)/(v_flow + v_height)
+                delta_h = (u_flow + u_height) - (v_flow + v_height)
+                if delta_h < 0:
+                    continue
+                delta_h = min(delta_h, u_flow)
+                temp = (u_flow + u_height)/(v_flow + v_height) - 1
                 if  G.edges[u, v]["trasmittance"] - G.edges[v, u]["trasmittance"] > epsilon:
                     G.edges[u, v]["forwarding_flow"] = G.edges[u, v]["trasmittance"] * alpha * delta_h * (1/ (1 + math.exp(-temp)))
                     if u not in temp_list and G.edges[u, v]["forwarding_flow"] > 0.1:
-                        #print("forwarding flow",G.edges[u, v]["forwarding_flow"], "from", u,"to",v)
                         temp_list.append(u)
         if len(temp_list) > 0:
             for u in node_to_visit:
@@ -159,17 +162,34 @@ def eruption1(G, id_vent, volume, n_days, alpha, threshold):
                     if G.edges[u, v]["forwarding_flow"] > 0:
                         G.node[v]["current_flow"] += G.edges[u, v]["forwarding_flow"]
                         G.node[u]["current_flow"] -= G.edges[u, v]["forwarding_flow"]
-                        #print("passo", G.edges[u, v]["forwarding_flow"],"lava da", u,"a", v)
                         G.edges[u, v]["forwarding_flow"] = 0.0
                         if v not in temp_list:
                             temp_list.append(v)
-                #print("flow nel nodo", G.node[u]["current_flow"])
-        #print("flusso nel nodo root", G.node[root]["current_flow"])
+                
         node_to_visit = []
         node_to_visit = temp_list
+    # esporta l'output come vettore per poi ottenere la matrice sparsa
+    #        necessaria per il calcolo delle metriche
+    vect = np.zeros(len(G.nodes()))
+    max_cf = 0 
+
+    for u in G.nodes():
+        if G.node[u]["current_flow"] > max_cf:
+            max_cf = G.node[u]["current_flow"]
+    for u in G.nodes(): 
+        
+        val = (G.node[u]["current_flow"] - 1.e-7) / (max_cf - 1.e-7)
+        vect[int(u)] = val
+        if vect[int(u)] < 1.e-7:
+            vect[int(u)] = 0
+        if G.node[u]["current_flow"] == max_cf:
+            print(vect[int(u)])
+    
+    sparse_vect = sparse.csr_matrix(vect)
+    sparse.save_npz("sparse/eruption_" + str(id_vent) + ".npz", sparse_vect, compressed = True)
     return G
 
-def eruption_new(G, id_vent, threshold):
+'''def eruption_new(G, id_vent, threshold):
     print(threshold)
     coord_vent = utility.vent_in_dem(id_vent)
     root = get_id_from_coord(G, coord_vent)
@@ -191,15 +211,14 @@ def eruption_new(G, id_vent, threshold):
                     G.node[current_node]['current_flow'] -= flow
                     print(G.node[current_node]['current_flow'])
                 G.node[v]['awash'] = True
-    return G
+    return G'''
 
 
-def eruption_prob(G, id_vent, epoch):
-    coord_vent = utility.vent_in_dem(id_vent)
+def prob_eruption(G, id_vent, epoch):
+    coord_vent = utility.vent_in_dem(id_vent - 1)
     root = get_id_from_coord(G, coord_vent)
     node_to_restart = []
-    for ep in range(0, epoch): 
-        print("Epoch:", ep)
+    for ep in range(0, epoch):
         G.node[root]['awash'] = True
         node_to_visit = queue.Queue()
         node_to_visit.put(root)
@@ -210,15 +229,15 @@ def eruption_prob(G, id_vent, epoch):
             id_max_prob = 0
             for v in G.successors(current_node):
                 if(not G.node[v]['awash']):
-                    rand_value = random.uniform(0, 0.5)
-                    if rand_value < G.edges[current_node, v]["weight"]:
+                    rand_value = random.uniform(0, 1)
+                    if rand_value < G.edges[current_node, v]["trasmittance"]:
                         awashed += 1
                         G.node[v]['awash'] = True
                         G.node[v]['current_flow'] += 1
                         node_to_restart.append(v)
                         node_to_visit.put(v)
-                if G.edges[current_node, v]["weight"] > max_prob:
-                    max_prob = G.edges[current_node, v]["weight"]
+                if G.edges[current_node, v]["trasmittance"] > max_prob:
+                    max_prob = G.edges[current_node, v]["trasmittance"]
                     id_max_prob = v
 
             if id_max_prob != 0:
@@ -230,13 +249,19 @@ def eruption_prob(G, id_vent, epoch):
                             node_to_restart.append(id_max_prob)
                             G.node[id_max_prob]['current_flow'] += 1
                             node_to_visit.put(v)
-                            print(v, "Awashed dopo")
+                            #print(v, "Awashed dopo")
         for node in node_to_restart:
             G.node[node]['awash'] = False
 
 
+    # esporta l'output come vettore per poi ottenere la matrice sparsa
+    #        necessaria per il calcolo delle metriche
+    vect = np.zeros(len(G.nodes()))
     for u in G.nodes():
         G.node[u]['current_flow'] = G.node[u]['current_flow'] / epoch
+        vect[int(u)] = G.node[u]["current_flow"] / epoch
+    sparse_vect = sparse.csr_matrix(vect)
+    sparse.save_npz("sparse/proberuption_" + str(id_vent) + ".npz", sparse_vect, compressed = True)
     return G
 
 #seconda implementazione del metodo eruption

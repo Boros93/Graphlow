@@ -28,8 +28,12 @@ while True:
 - exit""")
     cmd = input("Insert a command > ")
     cmd = cmd.split(" ")
-    if cmd[0] == "eruption":
-        commands.begin_eruption(*cmd[1:])
+    if cmd[0] == "trivector":
+        commands.trivector(*cmd[1:])
+    elif cmd[0] == "eruption":
+        commands.eruption1(*cmd[1:])
+    elif cmd[0] == "proberuption":
+        commands.prob_eruption_(*cmd[1:])
     elif cmd[0] == "showsim":
         commands.show_sim(*cmd[1:])
     elif cmd[0] == "man":
@@ -38,25 +42,23 @@ while True:
         print("Goodbye!")
         break
     elif cmd[0] == "test": # comando per testare metodi
-        commands.test()
+        commands.test(*cmd[1:])
     elif cmd[0] == "norm": # normalizza 
         commands.norm_weight()
     elif cmd[0] == "unify": # unifica le simulazioni
-        if cmd[2] == 'c' or cmd[2] == 'd':
-            commands.unify(*cmd[1:])
-        else:
-            print("insert 'd' or 'c' after id_vent. 'd' = discrete, 'c' = continuous")
+        #if cmd[2] == 'c' or cmd[2] == 'd':
+        commands.unify(*cmd[1:])
+        #else:
+            #print("insert 'd' or 'c' after id_vent. 'd' = discrete, 'c' = continuous")
     elif cmd[0] == "nodefromvent":
         commands.node_from_idvent(*cmd[1:])
-    elif cmd[0] == "proberuption":
-        commands.prob_algorithm(*cmd[1:])
     elif cmd[0] == "mae":
         if len(cmd) == 1:
             print("Insert a vent id.")
         else:
             commands.MAE_metric(*cmd[1:])
-    elif cmd[0] == "hit":
-        commands.hit_metric(*cmd[1:])
+    elif cmd[0] == "compare":
+        commands.compare_eruption(*cmd[1:])
     else:
         print("Insert a valid command.")
 

@@ -5,6 +5,7 @@ import init_map
 import math
 from statistics import median
 import os
+import numpy as np
 
 
 def create_graph(l_map):
@@ -74,8 +75,10 @@ def create_edges(G):
                     slope_vu = -slope_uv
                     # Viene creato l'edge solo se il peso è maggiore di 0
                     if weight_uv != 0:
-                        G.add_edge(u, v, weight=weight_uv, transmit_rank = 0, slope = slope_uv, forwarding_flow = 0.0, trasmittance = 0.0)
-                        G.add_edge(v, u, weight=weight_vu, transmit_rank = 0, slope = slope_vu, forwarding_flow = 0.0, trasmittance = 0.0)
+                        G.add_edge(u, v, weight=weight_uv, transmit_rank = 0, slope = slope_uv, forwarding_flow = 0.0,
+                                            trasmittance = 0.0, sigmoid_norm_tr_rank = 0.0)
+                        G.add_edge(v, u, weight=weight_vu, transmit_rank = 0, slope = slope_vu, forwarding_flow = 0.0,
+                                            trasmittance = 0.0, sigmoid_norm_tr_rank = 0.0)
                         n_edges += 2
                     if n_edges % 5000 == 0 and n_edges != 0:
                         print("Created", n_edges, " edges")
@@ -84,7 +87,6 @@ def create_edges(G):
 
 # Metodo per esportare il grafo in formato .gexf (per visualizzare)
 def export_graph(G, filename, is_first_time):
-    print("Writing gexf file...")
     # Crea una copia del grafo per esportarlo con gli attributi 
     G_copy = nx.DiGraph()
     for u, data in G.nodes(data=True):
@@ -105,10 +107,10 @@ def export_graph(G, filename, is_first_time):
         
     for node1, node2, data in G.edges(data=True):
         G_copy.add_edge(node1, node2, weight = data['weight'], transmit_rank = data["transmit_rank"], slope = data["slope"],
-                        forwarding_flow = data["forwarding_flow"], trasmittance = data["trasmittance"])
+                        forwarding_flow = data["forwarding_flow"], trasmittance = data["trasmittance"],
+                        sigmoid_norm_tr_rank = data ["sigmoid_norm_tr_rank"])
 
     nx.write_gexf(G_copy, "./graph_gexf/eruption/" + filename)
-    print("Writed in ", filename)
     return G_copy
 
 # Metodo per calcolare un eventuale peso: inters(a,b)/union(a,b)
@@ -175,6 +177,28 @@ def normalize_trasmittance(G):
             for v in G.successors(u):
                 G.edges[u, v]["trasmittance"] =  G.edges[u, v]["transmit_rank"] / denominator
     return G
+
+def sigmoid_norm_tr_rank(G):
+    for u in G.nodes():
+        for v in G.successors(u):
+            u_v_trasm = G.edges[u, v]["transmit_rank"]
+            if u_v_trasm > 0:
+                pol_ratio = polynomial_ratio(u_v_trasm)
+                sigmoid_norm_tr_rank = sigmoid(pol_ratio)
+                G.edges[u, v]["sigmoid_norm_tr_rank"] =  float(sigmoid_norm_tr_rank)
+    return G
+
+# f(x) = 41*ln(3)(x - 22)/(25*x+506), dove x = trasmit rank di (u,v)
+def polynomial_ratio(trasmit_rank):
+    N = (trasmit_rank - 22) * 41 * np.log(3)
+    D = (25 * trasmit_rank) + 506
+    pol_ratio = N / D
+    return pol_ratio
+
+def sigmoid(value):
+    D = 1 + np.exp(-value)
+    sigmoid_value = 1 / D
+    return sigmoid_value
 
 def normalize_weight(G):
     for u in G.nodes():

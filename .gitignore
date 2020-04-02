@@ -44,3 +44,7 @@ ASCII_grids/ASCII_grid_simulation_2233_6.txt
 ASCII_grids/ASCII_grid_simulation_2233_6.txt.aux.xml
 
 graph_gexf/*
+
+sparse/*
+
+ASCII_grids/*

@@ -4,7 +4,10 @@ import networkx as nx
 import numpy as np
 from scipy import sparse
 
-def eruption_trivector(G, id_vent):
+def eruption_trivector(G, id_vent, threshold):
+#####################################
+    #threshold = 0.001 #inserire come parametro di input
+#####################################
     root = utility.get_node_from_idvent(str(int(id_vent)-1))
     # Inizializzazione dei tre vettori temporali
     vect1 = np.zeros(len(G.nodes()))
@@ -19,13 +22,11 @@ def eruption_trivector(G, id_vent):
     # Iniziamo mettendo i vicini della root nella coda esterna
     for v in G.successors(root):
         support_queue.put(v)
-        print(support_queue.qsize())
 
     key_to_control = "trasmittance" # trasmittance o weight
     
     # Inizio ciclo esterno, cicla fin quando non abbiamo più nodi da esplorare
     while not support_queue.empty():
-        print("Nodi da visitare", support_queue.qsize())
         
         # Trasferisco i nuovi vicini alla coda interna per poterli calcolare
         while not support_queue.empty():
@@ -56,8 +57,9 @@ def eruption_trivector(G, id_vent):
                 partial = product1 * product2
                 partial *= (vect2[pred[alpha]] - vect1[pred[alpha]])
                 increment += (partial * G.edges[str(pred[alpha]), j_node][key_to_control])
+            
             # Soglia dell'incremento
-            if increment > 0.01:
+            if increment > threshold:
                 vect3[int(j_node)] = vect2[int(j_node)] + increment
                 # Inserisco in coda i successori di j in modo che verranno esplorati al prossimo ciclo
             
@@ -77,7 +79,7 @@ def eruption_trivector(G, id_vent):
         G.node[str(index)]['current_flow'] = value
     
     sparse_vect = sparse.csr_matrix(vect3)
-    sparse.save_npz("sparse/npvect_probErup_" + id_vent + ".npz", sparse_vect, compressed = True)
+    sparse.save_npz("sparse/trivector_" + id_vent + ".npz", sparse_vect, compressed = True)
     
     return G
 
