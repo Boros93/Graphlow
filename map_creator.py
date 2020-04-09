@@ -45,7 +45,6 @@ def matrix_to_UTM(sparse_matrix, id_vent, unify_type = 'c', eruption_method = 0)
     elif eruption_method == 1:
         sparse_matrix = sparse.load_npz("sparse/M_trivector_" + str(id_vent) + ".npz")
         utm_filename = "ASCII_grids/trivector_" + str(id_vent) + ".txt"
-
     elif eruption_method == 2:
         sparse_matrix = sparse.load_npz("sparse/M_eruption_" + str(id_vent) + ".npz")
         utm_filename = "ASCII_grids/eruption_" + str(id_vent) + ".txt"

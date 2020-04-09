@@ -59,6 +59,11 @@ while True:
             commands.MAE_metric(*cmd[1:])
     elif cmd[0] == "compare":
         commands.compare_eruption(*cmd[1:])
+    elif cmd[0] == "multicompare": # aggiunta di -w to a file
+        if len(cmd) > 2:
+            commands.multicompare(rng = False, *cmd[1:])
+        else:
+            commands.multicompare(rng=True, *cmd[1:])
     else:
         print("Insert a valid command.")
 

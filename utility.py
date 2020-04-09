@@ -286,18 +286,17 @@ def hit_metric(id_vent):
     hit = count_inters / count_union
     print("HIT metric:", hit, "\n")
 
-'''
-   | eruption | real  |
-TP |     V    |   V   |
-TN |     X    |   X   |
-FP |     V    |   X   |
-FN |     X    |   V   |
-'''
-def get_confusion_matrix_indexes(id_vent, propagation_method):
+
+#    | eruption | real  |
+# TP |     V    |   V   |
+# TN |     X    |   X   |
+# FP |     V    |   X   |
+# FN |     X    |   V   |
+def compute_metrics(id_vent, propagation_method):
     #############################################
     # propagation_method = 1 ---> trivector     #
     #                    = 2 ---> eruption      #
-    #                    = 3 ---> proberuption #
+    #                    = 3 ---> proberuption  #
     #############################################
     if propagation_method == 1:
         graphlow_sparse_file = "sparse/M_trivector_" + str(id_vent) + ".npz"
@@ -328,16 +327,20 @@ def get_confusion_matrix_indexes(id_vent, propagation_method):
     tn = 0      # Contatore di tn booleano
     fn = 0      # Contatore di fn booleano
     
-    '''
-    fp_c = 0    # ACCUMULATORE fp
     tp_c = 0    # ACCUMULATORE tp
     tn_c = 0    # ACCUMULATORE tn
+    fp_c = 0    # ACCUMULATORE fp
     fn_c = 0    # ACCUMULATORE fn
-    '''
 
     # Errori per MAE
     cumulative_err_d = 0
     cumulative_err_c = 0
+
+    #variabili che servono a calcolare TPR e precision entrambi nel caso continuo
+    sum_real = 0
+    sum_graphlow = 0
+
+    maxes = 0
 
     for row in range(0, M_graphlow.shape[0]):
         for col in range(0, M_graphlow.shape[1]):
@@ -350,56 +353,92 @@ def get_confusion_matrix_indexes(id_vent, propagation_method):
             if M_graphlow[row][col] == 0 and M_real_d[row][col] > 0:   # fn 
                 fn += 1
 
+            tp_c += min(M_real_c[row][col], M_graphlow[row][col])
+            tn_c += min(1 - M_real_c[row][col], 1 - M_graphlow[row][col])
+            fp_c += min(1 - M_real_c[row][col], M_graphlow[row][col])
+            fn_c += min(M_real_c[row][col], 1 - M_graphlow[row][col])
+
             error_d = abs(M_real_d[row][col] - M_graphlow[row][col])
             error_c = abs(M_real_c[row][col] - M_graphlow[row][col])
             cumulative_err_d += error_d
             cumulative_err_c += error_c
 
-    ################# calcolo la metrica MAE ########################  
-    mae_d = cumulative_err_d/(M_real_d.shape[0] * M_real_d.shape[1])#
-    mae_c = cumulative_err_c/(M_real_c.shape[0] * M_real_c.shape[1])#
+            sum_graphlow += M_graphlow[row][col]
+            sum_real += M_real_c[row][col]
+
+            maxes += max(M_real_c[row][col], M_graphlow[row][col])
+
+    #################### calcolo le metriche ########################  
+    mae_d = round(cumulative_err_d/(M_real_d.shape[0] * M_real_d.shape[1]), 2)
+    mae_c = round(cumulative_err_c/(M_real_c.shape[0] * M_real_c.shape[1]), 2)
+    precision = ppv(tp, fp)
+    precision_c = round(tp_c / sum_graphlow, 2)
+    tpr = tp_rate(tp, fn)
+    tpr_c = round(tp_c / sum_graphlow, 2)
+    acc = accuracy(tp, tn, fp, fn)
+    hit = hit_rate(tp, fp, fn)
+    # maxes = sum(max(real, graphlow))
+    hit_c = round(tp_c / maxes, 2)
+    F1 = f1(precision,tpr)
     #################################################################
-    return tp, tn, fp, fn, mae_d, mae_c
+
+    return precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, F1
 
 # precision = PPV = tp/(tp + fp)
 def ppv(tp, fp):
     precision = tp/ (tp + fp)
-    return precision
+    return round(precision, 2)
 
 # TPR = RECALL = tp/(tp + fn)
 def tp_rate(tp, fn):
     tpr = tp/ (tp + fn)
-    return tpr
+    return round(tpr, 2)
 
 # hit_rate = tp / (fp + fn + tp)
 def hit_rate(tp, fp, fn):
     hit = tp / (fp + fn + tp)
-    return hit
+    return round(hit, 2)
 
 # acc = (tp + tn) / (tp + fp + tn + fn)
 def accuracy(tp, tn, fp, fn):
     acc = (tp + tn) / (tp + fp + tn + fn)
-    return acc
+    return round(acc, 2)
 
 def f1(precision, tpr):
     f1 = 2 * precision * tpr / (precision + tpr)
-    return f1
+    return round(f1, 2)
 
-def compute_metrics(id_vent, propagation_method):
-    tp, tn, fp, fn, mae_d, mae_c = get_confusion_matrix_indexes(id_vent, propagation_method)
-    precision = ppv(tp, fp)
-    #print("\nPPV =", precision)
-    
-    tpr = tp_rate(tp, fn)
-    #print("\nTPR =", tpr)
-    
-    acc = accuracy(tp, tn, fp, fn)
-    #print("\nacc = ", acc)
-    
-    hit = hit_rate(tp, fp, fn)
-    #print("\nhit = ", hit)
-    
-    #print("\nmae_d = ", mae_d)
-    #print("\nmae_c = ", mae_c)
-    F1 = f1(precision,tpr)
-    return precision, tpr, acc, hit, mae_d, mae_c, F1
+# metodo che serve per creare il vettore sparso, la matrice sparsa e l'ascii grid di un'eruzione
+def ascii_creator(id_vent, propagation_method):
+    #crea il vettore
+
+    #crea la matrice
+
+    #esporta l'ascii grid
+    return
+
+# inserisce le metriche in tre matrici e le ritorna.
+'''
+                TRIVECTOR
+       | ppvc | ppv  | tpr  | tprc |
+vent1  | 4444 | 4444 | 4444 | 4444 |
+vent2  |        |        |     |        |
+vent3  |        |        |     |        |
+.      |        |        |     |        |
+.      |        |        |     |        |
+.      |        |        |     |        |
+ventM  |        |        |     |        |
+
+'''  
+def init_table(propagation_method):
+    print("\n\n                                  " + propagation_method)
+    metric_name_list = ["VENT", "PPV ", "PPVC", "TPR ", "TPRC", "ACC ", "HIT ", "HITC", "MAED", "MAEC", "F1  "]
+    for metric in metric_name_list:
+        print("| " + metric, end = " ")
+    print("|")
+
+def create_row_table(metric_list, vent):
+    print("| " + vent.ljust(5, " "), end="")
+    for metric in metric_list:
+        print("| " + str(metric).ljust(4, "0"), end = " ")
+    print("|")
