@@ -199,11 +199,12 @@ def multicompare(*parameter_list, rng = True):
     vent_list = []
     # acquisisco la lista di bocche da comparare
     if rng == True:
+        print("Random")
         n = int(parameter_list[0])
         for i in range(0, n):
             x = random.randint(4, 4814)
-            while str(x) not in vent_list:
-                x = random.randint(4, 4814)
+            while str(x) in vent_list:
+                x = str(random.randint(4, 4814))
             vent_list.append(str(x))
         print("vent to compare:", vent_list)
     else:

@@ -1,33 +1,7 @@
 import commands
-import sys
+import sys, getopt
 
-print("========= Welcome in GRAPHLOW ==========")
-print(r"""\                  ooO
-                     ooOOOo
-                   oOOOOOOoooo
-                 ooOOOooo  oooo
-                /vvv\
-               /V V V\ 
-              /V  V  V\          
-             /     V   \          AAAAH!  RUN FOR YOUR LIVES!
-            /      VV   \               /
-  ____     /        VVV  \   	  o          o
- /\      /        VVVV     \     /-   o     /-
-/  \   /           VVVVVVV   \  /\  -/-    /\
-                    VVVVVVVVVVVVV   /\
-                    """)
-while True:
-    print(r"""Available commands: 
-- man
-- eruption [id_vent] [volume] [n_days] [alpha] [threshold]
-- showsim [id_vent] [class]
-- graph_to_matrix
-- norm
-- nodefromvent [id_vent]
-- unify [id_vent] [d | c]
-- exit""")
-    cmd = input("Insert a command > ")
-    cmd = cmd.split(" ")
+def switch_command(cmd):
     if cmd[0] == "trivector":
         commands.trivector(*cmd[1:])
     elif cmd[0] == "eruption":
@@ -40,7 +14,7 @@ while True:
         commands.man()
     elif cmd[0] == "exit":
         print("Goodbye!")
-        break
+        return 0
     elif cmd[0] == "test": # comando per testare metodi
         commands.test(*cmd[1:])
     elif cmd[0] == "norm": # normalizza 
@@ -59,7 +33,7 @@ while True:
             commands.MAE_metric(*cmd[1:])
     elif cmd[0] == "compare":
         commands.compare_eruption(*cmd[1:])
-    elif cmd[0] == "multicompare": # aggiunta di -w to a file
+    elif cmd[0] == "multicompare" or cmd[0] == "-m": # aggiunta di -w to a file
         if len(cmd) > 2:
             commands.multicompare(rng = False, *cmd[1:])
         else:
@@ -67,3 +41,38 @@ while True:
     else:
         print("Insert a valid command.")
 
+_, cmd = getopt.getopt(sys.argv, "m", ["multicompare"])
+if len(cmd) > 1:
+    cmd = cmd[1:]
+    switch_command(cmd)
+else:
+    print("========= Welcome in GRAPHLOW ==========")
+    print(r"""\                   ooO
+                               ooOOOo
+                         oOOOOOOoooo
+                     ooOOOooo  oooo
+                   /vvv\
+                  /V V V\ 
+                 /V  V  V\          
+                /     V   \          AAAAH!  RUN FOR YOUR LIVES!
+               /      VV   \               /
+     ____     /        VVV  \   	  o          o
+     /\      /        VVVV     \     /-   o     /-
+    /  \   /           VVVVVVV   \  /\  -/-    /\
+                        VVVVVVVVVVVVV   /\
+                        """)
+    while True:
+        print(r"""Available commands: 
+    - man
+    - eruption [id_vent] [volume] [n_days] [alpha] [threshold]
+    - showsim [id_vent] [class]
+    - graph_to_matrix
+    - norm
+    - nodefromvent [id_vent]
+    - unify [id_vent] [d | c]
+    - exit""")
+        cmd = input("Insert a command > ")
+        cmd = cmd.split(" ")
+        state = switch_command(cmd)
+        if state == 0:
+            break
