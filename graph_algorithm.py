@@ -282,7 +282,7 @@ def eruption1_old(G, id_vent, volume, n_days, alpha):
     return G'''
 
 
-def prob_eruption(G, id_vent, epoch):
+def prob_eruption(G, id_vent, epoch, second_chance=0):
     coord_vent = utility.vent_in_dem(id_vent - 1)
     root = get_id_from_coord(G, coord_vent)
     node_to_restart = []
@@ -312,12 +312,11 @@ def prob_eruption(G, id_vent, epoch):
                 if awashed == 0:
                     if(not G.node[id_max_prob]['awash']):
                         rand_value = random.uniform(0,1)
-                        if rand_value < 0.5:
+                        if rand_value < second_chance:
                             G.node[id_max_prob]['awash'] = True
                             node_to_restart.append(id_max_prob)
                             G.node[id_max_prob]['current_flow'] += 1
                             node_to_visit.put(v)
-                            #print(v, "Awashed dopo")
         for node in node_to_restart:
             G.node[node]['awash'] = False
 
