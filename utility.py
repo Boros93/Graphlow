@@ -374,15 +374,16 @@ def compute_metrics(id_vent, propagation_method):
     precision = ppv(tp, fp)
     precision_c = round(tp_c / sum_graphlow, 2)
     tpr = tp_rate(tp, fn)
-    tpr_c = round(tp_c / sum_graphlow, 2)
+    tpr_c = round(tp_c / sum_real, 2)
     acc = accuracy(tp, tn, fp, fn)
     hit = hit_rate(tp, fp, fn)
     # maxes = sum(max(real, graphlow))
     hit_c = round(tp_c / maxes, 2)
     F1 = f1(precision,tpr)
+    F1_c = f1(precision_c, tpr_c)
     #################################################################
 
-    return precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, F1
+    return precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, F1, F1_c
 
 # precision = PPV = tp/(tp + fp)
 def ppv(tp, fp):
@@ -432,7 +433,7 @@ ventM  |        |        |     |        |
 '''  
 def init_table(propagation_method):
     print("\n\n                                  " + propagation_method)
-    metric_name_list = ["VENT", "PPV ", "PPVC", "TPR ", "TPRC", "ACC ", "HIT ", "HITC", "MAED", "MAEC", "F1  "]
+    metric_name_list = ["VENT", "PPV ", "PPVC", "TPR ", "TPRC", "ACC ", "HIT ", "HITC", "MAED", "MAEC", "F1  ", "F1C "]
     for metric in metric_name_list:
         print("| " + metric, end = " ")
     print("|")

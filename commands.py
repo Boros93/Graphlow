@@ -35,11 +35,11 @@ def man():
                                example of usage: showsim 2233 6
     """)
 
-def prob_eruption_(id_vent = 0, epoch = 100):
+def prob_eruption_(id_vent = 0, epoch = 100, second_chance = 0):
     G = load_graph()
     if id_vent == 0:
         return
-    G_ = ga.prob_eruption(G, int(id_vent), epoch)
+    G_ = ga.prob_eruption(G, int(id_vent), int(epoch), float(second_chance))
     gm.export_graph(G_, "proberuption_" + str(id_vent) + ".gexf", is_first_time = False)
     
     #############################################
@@ -53,8 +53,8 @@ def prob_eruption_(id_vent = 0, epoch = 100):
     mc.matrix_to_UTM(sparse_matrix, id_vent, eruption_method=3)
        
     #calcolo metriche
-    precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1 = utility.compute_metrics(id_vent, 3)
-    return [precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1]
+    precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1, f1_c = utility.compute_metrics(id_vent, 3)
+    return [precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1, f1_c]
 
 
 def eruption1(id_vent = 0, volume = 1000, n_days = 7, alpha = 1/8):
@@ -77,8 +77,8 @@ def eruption1(id_vent = 0, volume = 1000, n_days = 7, alpha = 1/8):
 
    
     #calcolo metriche
-    precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1 = utility.compute_metrics(id_vent, 2)
-    return [precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1]
+    precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1, f1_c = utility.compute_metrics(id_vent, 2)
+    return [precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1, f1_c]
 
 
 def trivector(id_vent = 0, threshold = 0.001): 
@@ -97,8 +97,8 @@ def trivector(id_vent = 0, threshold = 0.001):
     #                    = 3 ---> proberuption  #
     #############################################
     #calcolo metriche
-    precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1 = utility.compute_metrics(id_vent, 1)
-    return [precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1]
+    precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1, f1_c = utility.compute_metrics(id_vent, 1)
+    return [precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1, f1_c]
 
 
 def show_sim(id_vent = 0, class_ = 1):
@@ -175,13 +175,13 @@ def compare_eruption(id_vent): #capire come poter passare bene i parametri di tu
     #                    = 3 ---> proberuption  #
     #############################################
     trivector(id_vent, threshold)
-    tri_precision, tri_precision_c, tri_tpr, tri_tpr_c, tri_acc, tri_hit, tri_hit_c, tri_mae_d, tri_mae_c, tri_f1 = utility.compute_metrics(id_vent, 1)
+    tri_precision, tri_precision_c, tri_tpr, tri_tpr_c, tri_acc, tri_hit, tri_hit_c, tri_mae_d, tri_mae_c, tri_f1, tri_f1_c = utility.compute_metrics(id_vent, 1)
 
     eruption1(id_vent, volume, n_days, alpha)
-    eru_precision, eru_precision_c, eru_tpr, eru_tpr_c, eru_acc, eru_hit, eru_hit_c, eru_mae_d, eru_mae_c, eru_f1 = utility.compute_metrics(id_vent, 2)
+    eru_precision, eru_precision_c, eru_tpr, eru_tpr_c, eru_acc, eru_hit, eru_hit_c, eru_mae_d, eru_mae_c, eru_f1, eru_f1_c = utility.compute_metrics(id_vent, 2)
     
     prob_eruption_(id_vent, epoch)
-    pr_eru_precision, pr_eru_precision_c, pr_eru_tpr, pr_eru_tpr_c, pr_eru_acc, pr_eru_hit, pr_eru_hit_c, pr_eru_mae_d, pr_eru_mae_c, pr_eru_f1 = utility.compute_metrics(id_vent, 3)
+    pr_eru_precision, pr_eru_precision_c, pr_eru_tpr, pr_eru_tpr_c, pr_eru_acc, pr_eru_hit, pr_eru_hit_c, pr_eru_mae_d, pr_eru_mae_c, pr_eru_f1, pr_er_f1_c= utility.compute_metrics(id_vent, 3)
 
     print("\nIn order: trivector, eruption, proberuption")
     print("PRECISION:\n", tri_precision, "\n", eru_precision, "\n", pr_eru_precision,"\n")
@@ -212,7 +212,7 @@ def multicompare(*parameter_list, rng = True):
             vent_list.append(p)
     
     # ogni elemento di queste liste sarà una lista composta da (in ordine):
-    # (precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1)
+    # (precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1, f1_c)
     methods = ["TRIVECTOR", "ERUPTION", "PROBERUPTION"]
     for method in methods:
         utility.init_table(method)

@@ -282,7 +282,7 @@ def eruption1_old(G, id_vent, volume, n_days, alpha):
     return G'''
 
 
-def prob_eruption(G, id_vent, epoch, second_chance=0):
+def prob_eruption(G, id_vent, epoch, second_chance):
     coord_vent = utility.vent_in_dem(id_vent - 1)
     root = get_id_from_coord(G, coord_vent)
     node_to_restart = []
