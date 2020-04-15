@@ -123,7 +123,8 @@ def get_id_from_coord(G, coord):
 # eruption con controlli su transmitrank e senza controlli su altezze
 # transmit_rank(u, v) - transmit_rank(v, u) > epsilon 
 # LAVA TRASMESSA TUTTA PRIMA DI EMETTERLA DI NUOVO
-def eruption1(G, id_vent, volume, n_days, alpha):
+def eruption1(G, id_vent, volume, n_days, threshold):
+    alpha = 1/8
     volume_per_day = int(volume/n_days)
     volume_remaining = volume
     node_to_visit=[]
@@ -133,7 +134,6 @@ def eruption1(G, id_vent, volume, n_days, alpha):
     G.node[root]["current_flow"] = volume_per_day
     volume_remaining -= volume_per_day
 
-    epsilon = 0.15
     day_count = 1
     while volume_remaining > 0:
         G.node[root]["current_flow"] += volume_per_day
@@ -153,7 +153,7 @@ def eruption1(G, id_vent, volume, n_days, alpha):
                         continue
                     delta_h = min(delta_h, u_flow)
                     temp = (u_flow + u_height)/(v_flow + v_height) - 1
-                    if  G.edges[u, v]["trasmittance"] - G.edges[v, u]["trasmittance"] > epsilon:
+                    if  G.edges[u, v]["trasmittance"] - G.edges[v, u]["trasmittance"] > threshold:
                         G.edges[u, v]["forwarding_flow"] = G.edges[u, v]["trasmittance"] * alpha * delta_h * (1/ (1 + math.exp(-temp)))
                         if u not in temp_list and G.edges[u, v]["forwarding_flow"] > 0.1:
                             temp_list.append(u)

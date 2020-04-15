@@ -57,12 +57,12 @@ def prob_eruption_(id_vent = 0, epoch = 100, second_chance = 0):
     return [precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1, f1_c]
 
 
-def eruption1(id_vent = 0, volume = 1000, n_days = 7, alpha = 1/8):
+def eruption1(id_vent = 0, volume = 1000, n_days = 7, threshold = 0.15):
     
     if id_vent == 0:
         return
     G = load_graph()
-    G_ = ga.eruption1(G, int(id_vent), int(volume), int(n_days), float(alpha))
+    G_ = ga.eruption1(G, int(id_vent), int(volume), int(n_days), float(threshold))
     gm.export_graph(G_, "eruption_" + str(id_vent) + ".gexf", is_first_time = False)
     
     #############################################
@@ -111,12 +111,6 @@ def show_sim(id_vent = 0, class_ = 1):
     print("Exporting ASCII grid...")
     mc.graph_to_UTM(G, "ASCII_grids/" + "ASCII_grid_simulation_" + sim_filename[10:])
     print("...done.")
-
-def test(id_vent = 0, volume = 1000, n_days = 7, alpha = 1/8, threshold = 1):
-    #test per esportare nuovi grafi
-    '''G = load_graph()
-    G = gm.sigmoid_norm_tr_rank(G)
-    gm.export_graph(G, "scaled_map91x75_sigmoid_normalized.gexf", is_first_time = False)'''
     
 def norm_weight():
     G = nx.read_gexf("graph_gexf/scaled_map91x75_normalized.gexf")
@@ -134,82 +128,21 @@ def unify(id_vent, char = 'c'):
 def MAE_metric(id_vent, unify_type):
     utility.MAE_metric(id_vent, unify_type)
 
-def compare_eruption(id_vent): #capire come poter passare bene i parametri di tutti e tre i metodi
-    # avvia i metodi di propagazione e mette a confronto le metriche.
-
-    #parametri trivector
-    threshold = input("Insert threshold for trivector > ")
-    if threshold == "":
-        threshold = 0.001
+def compare(*parameter_list):
+    # Primo parametro corrisponde al fatto che il metodo sia random o scelto dall'utente
+    vent_list, setting = [], []
+    if parameter_list[0] == '-r':
+        vent_list = random_vent() 
+    elif parameter_list[0] == '-c':
+        vent_list = select_vent()
     else:
-        threshold = float(threshold)
-
-    #parametri eruption
-    volume = input("Insert volume for eruption > ")
-    if volume == "":
-        volume = 1000
-    else:
-        volume = int(volume)
-
-    n_days = input("Insert #days for eruption > ")
-    if n_days == "":
-        n_days = 7
-    else:
-        n_days = int(n_days)
-
-    alpha = input("Insert alpha for eruption > ")
-    if alpha == "":
-        alpha = 0.125
-    else:
-        alpha = float(alpha)
-    #parametri proberuption
-    epoch = input("Insert epoch for proberuption > ")
-    if epoch == "":
-        epoch = 100
-    else:
-        epoch = int(epoch)
+        print(parameter_list[0], "non esiste come opzione. Selezionare -r o -c")
     
-    #############################################
-    # propagation_method = 1 ---> trivector     #
-    #                    = 2 ---> eruption      #
-    #                    = 3 ---> proberuption  #
-    #############################################
-    trivector(id_vent, threshold)
-    tri_precision, tri_precision_c, tri_tpr, tri_tpr_c, tri_acc, tri_hit, tri_hit_c, tri_mae_d, tri_mae_c, tri_f1, tri_f1_c = utility.compute_metrics(id_vent, 1)
-
-    eruption1(id_vent, volume, n_days, alpha)
-    eru_precision, eru_precision_c, eru_tpr, eru_tpr_c, eru_acc, eru_hit, eru_hit_c, eru_mae_d, eru_mae_c, eru_f1, eru_f1_c = utility.compute_metrics(id_vent, 2)
-    
-    prob_eruption_(id_vent, epoch)
-    pr_eru_precision, pr_eru_precision_c, pr_eru_tpr, pr_eru_tpr_c, pr_eru_acc, pr_eru_hit, pr_eru_hit_c, pr_eru_mae_d, pr_eru_mae_c, pr_eru_f1, pr_er_f1_c= utility.compute_metrics(id_vent, 3)
-
-    print("\nIn order: trivector, eruption, proberuption")
-    print("PRECISION:\n", tri_precision, "\n", eru_precision, "\n", pr_eru_precision,"\n")
-    print("PRECISION_C:\n", tri_precision_c, "\n", eru_precision_c, "\n", pr_eru_precision_c,"\n")
-    print("\nTPR:\n", tri_tpr,"\n", eru_tpr,"\n", pr_eru_tpr,"\n")
-    print("\nTPR_C:\n", tri_tpr_c,"\n", eru_tpr_c,"\n", pr_eru_tpr_c,"\n")
-    print("\nACC\n", tri_acc,"\n", eru_acc,"\n", pr_eru_acc,"\n")
-    print("\nHIT:\n", tri_hit,"\n", eru_hit,"\n", pr_eru_hit,"\n")
-    print("\nHIT_C:\n", tri_hit_c,"\n", eru_hit_c,"\n", pr_eru_hit_c,"\n")
-    print("\nMAE_D:\n", tri_mae_d,"\n", eru_mae_d,"\n", pr_eru_mae_d,"\n")
-    print("\nMAE_C:\n", tri_mae_c,"\n", eru_mae_c,"\n", pr_eru_mae_c,"\n")
-    print("\nF1:\n", tri_f1,"\n", eru_f1,"\n", pr_eru_f1,"\n")
-
-def multicompare(*parameter_list, rng = True):
-    vent_list = []
-    # acquisisco la lista di bocche da comparare
-    if rng == True:
-        print("Random")
-        n = int(parameter_list[0])
-        for i in range(0, n):
-            x = random.randint(4, 4814)
-            while str(x) in vent_list:
-                x = str(random.randint(4, 4814))
-            vent_list.append(str(x))
-        print("vent to compare:", vent_list)
+    # Secondo parametro (se esiste) indica che l'utente vuole scegliere i parametri per gli algoritmi
+    if len(parameter_list) > 1 and parameter_list[1] == "-p":
+        setting = choose_setting()
     else:
-        for p in parameter_list:
-            vent_list.append(p)
+        setting = [0.001, [1000,7,0.15], [100, 0]]
     
     # ogni elemento di queste liste sarà una lista composta da (in ordine):
     # (precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, f1, f1_c)
@@ -218,9 +151,63 @@ def multicompare(*parameter_list, rng = True):
         utility.init_table(method)
         for vent in vent_list:
             if method == "TRIVECTOR":
-                utility.create_row_table(trivector(vent), vent)
+                utility.create_row_table(trivector(vent, setting[0]), vent)
             elif method == "ERUPTION":
-                utility.create_row_table(eruption1(vent), vent)
+                utility.create_row_table(eruption1(vent, *setting[1]), vent)
             elif method == "PROBERUPTION":
-                utility.create_row_table(prob_eruption_(vent), vent)
+                utility.create_row_table(prob_eruption_(vent, *setting[2]), vent)
+
+def random_vent(*parameter_list):
+    n_vents = int(input("Insert number of vents to compare:"))
+    # Genera n vent casualmente
+    vent_list = []
+    for i in range(0, n_vents):
+        x = random.randint(4, 4814)
+        while str(x) in vent_list:
+            x = str(random.randint(4, 4814))
+        vent_list.append(str(x))
+    return vent_list
+
+def select_vent(*parameter_list):
+    vents = input("Insert the list of vents to compare:")
+    vent_list = vents.split(" ")
+    return vent_list
+
+
+def choose_setting():
+    setting_list = []
+    # Trivector parametri
+    threshold = input("Insert the parameter of Trivector's Algorithm (threshold):")
+    if threshold == "":
+        threshold = 0.001
+    setting_list.append(threshold)
+
+    # Eruption parametri
+    volume = input("Insert volume of Eruption:")
+    if volume == "":
+        volume = 1000
+    n_days = input("Insert number of days of Eruption:")
+    if n_days == "":
+        n_days = 7
+    threshold = input("Insert the threshold of Eruption:")
+    if threshold == "":
+        threshold = 0.15
+    setting_list.append([volume, n_days, threshold])
+
+    # Proberuption parametri
+    epoch = input("Insert the number of epoch for Montecarlo")
+    if epoch == "":
+        epoch = 100
+    second_chance = input("Insert the probability for the second chance in Montecarlo")
+    if second_chance == "":
+        second_chance = 0
+    setting_list.append([epoch, second_chance])
+
+    return setting_list
+
+
+    
+
+    
+
     

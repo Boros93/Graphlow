@@ -31,17 +31,12 @@ def switch_command(cmd):
             print("Insert a vent id.")
         else:
             commands.MAE_metric(*cmd[1:])
-    elif cmd[0] == "compare":
-        commands.compare_eruption(*cmd[1:])
-    elif cmd[0] == "multicompare" or cmd[0] == "-m": # aggiunta di -w to a file
-        if len(cmd) > 2:
-            commands.multicompare(rng = False, *cmd[1:])
-        else:
-            commands.multicompare(rng=True, *cmd[1:])
+    elif cmd[0] == "compare": # aggiunta di -w to a file
+            commands.compare(*cmd[1:])
     else:
         print("Insert a valid command.")
 
-_, cmd = getopt.getopt(sys.argv, "m", ["multicompare"])
+_, cmd = getopt.getopt(sys.argv, "m", ["compare"])
 if len(cmd) > 1:
     cmd = cmd[1:]
     switch_command(cmd)

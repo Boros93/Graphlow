@@ -387,26 +387,41 @@ def compute_metrics(id_vent, propagation_method):
 
 # precision = PPV = tp/(tp + fp)
 def ppv(tp, fp):
-    precision = tp/ (tp + fp)
+    if not tp + fp == 0:
+        precision = tp/ (tp + fp)
+    else:
+        precision = 0
     return round(precision, 2)
 
 # TPR = RECALL = tp/(tp + fn)
 def tp_rate(tp, fn):
-    tpr = tp/ (tp + fn)
+    if not tp + fn == 0:
+        tpr = tp/ (tp + fn)
+    else:
+        tpr = 0
     return round(tpr, 2)
 
 # hit_rate = tp / (fp + fn + tp)
 def hit_rate(tp, fp, fn):
-    hit = tp / (fp + fn + tp)
+    if not fp + fn + tp == 0:
+        hit = tp / (fp + fn + tp)
+    else:
+        hit = 0
     return round(hit, 2)
 
 # acc = (tp + tn) / (tp + fp + tn + fn)
 def accuracy(tp, tn, fp, fn):
-    acc = (tp + tn) / (tp + fp + tn + fn)
+    if not tp + fp + tn + fn == 0:
+        acc = (tp + tn) / (tp + fp + tn + fn)
+    else:
+        acc = 0
     return round(acc, 2)
 
 def f1(precision, tpr):
-    f1 = 2 * precision * tpr / (precision + tpr)
+    if not precision == 0 and not tpr == 0:
+        f1 = 2 * precision * tpr / (precision + tpr)
+    else:
+        f1 = 0
     return round(f1, 2)
 
 # metodo che serve per creare il vettore sparso, la matrice sparsa e l'ascii grid di un'eruzione
