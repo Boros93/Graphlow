@@ -6,7 +6,7 @@ import math
 from statistics import median
 import os
 import numpy as np
-
+import conversion
 
 def create_graph(l_map):
     G = nx.DiGraph()
@@ -76,9 +76,9 @@ def create_edges(G):
                     # Viene creato l'edge solo se il peso è maggiore di 0
                     if weight_uv != 0:
                         G.add_edge(u, v, weight=weight_uv, transmit_rank = 0, slope = slope_uv, forwarding_flow = 0.0,
-                                            trasmittance = 0.0, sigmoid_norm_tr_rank = 0.0)
+                                            trasmittance = 0.0, prop_weight = 0.0)
                         G.add_edge(v, u, weight=weight_vu, transmit_rank = 0, slope = slope_vu, forwarding_flow = 0.0,
-                                            trasmittance = 0.0, sigmoid_norm_tr_rank = 0.0)
+                                            trasmittance = 0.0, prop_weight = 0.0)
                         n_edges += 2
                     if n_edges % 5000 == 0 and n_edges != 0:
                         print("Created", n_edges, " edges")
@@ -108,9 +108,9 @@ def export_graph(G, filename, is_first_time):
     for node1, node2, data in G.edges(data=True):
         G_copy.add_edge(node1, node2, weight = data['weight'], transmit_rank = data["transmit_rank"], slope = data["slope"],
                         forwarding_flow = data["forwarding_flow"], trasmittance = data["trasmittance"],
-                        sigmoid_norm_tr_rank = data ["sigmoid_norm_tr_rank"])
+                        prop_weight = data ["prop_weight"])
 
-    nx.write_gexf(G_copy, "./graph_gexf/eruption/" + filename)
+    nx.write_gexf(G_copy, "./graph_gexf" + filename)
     return G_copy
 
 # Metodo per calcolare un eventuale peso: inters(a,b)/union(a,b)
@@ -146,7 +146,7 @@ def get_height(scaled_hmap, coord_regions):
     coord_regions = coord_regions.split("|")
     median_list = []
     for coord in coord_regions:    
-        coord = utility.cast_coord_attr(coord)
+        coord = conversion.cast_coord_attr(coord)
         median_list.append(scaled_hmap[coord[0]][coord[1]])
     med = median(median_list)
     return med

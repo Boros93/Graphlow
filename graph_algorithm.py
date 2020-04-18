@@ -4,15 +4,15 @@ import math
 import random
 from scipy import sparse
 import numpy as np
-
+import conversion
 def set_node_rank(G, not_n_filename):
     # inserisco nella lista il nodo per poter azzerarne il rango alla fine.
     not_n_nodes = []
     rank = 0
-    id_vent = utility.id_from_not_n(not_n_filename)
-    coord_vent = utility.vent_in_dem(id_vent)
+    id_vent = conversion.id_from_not_n(not_n_filename)
+    coord_vent = conversion.vent_in_dem(id_vent)
     # ricerca del nodo che contiene la coordinata della bocca selezionata.
-    root = get_id_from_coord(G, coord_vent)
+    root = conversion.get_id_from_coord(G, coord_vent)
     G.node[root]['rank'] = 0
     G.node[root]["marked"] = 1
     G.node[root]["is_vent"] = 1
@@ -64,12 +64,7 @@ def next_to_current(current_queue, next_queue):
         current_queue.put(next_queue.get())
     return current_queue
 
-def get_id_from_coord(G, coord):
-    for u, data in G.nodes(data=True):
-        for coords in data["coord_regions"].split("|"):
-            coord_x, coord_y = utility.cast_coord_attr(coords)
-            if coord_x == int(coord[0]/25) and coord_y == int(coord[1]/25):
-                return u
+
 
 '''def eruption(G, id_vent, volume, n_days, alpha, threshold):
     volume_per_day = int(volume/n_days)

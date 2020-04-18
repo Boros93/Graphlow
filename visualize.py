@@ -1,6 +1,7 @@
 import numpy as np
 import utility
 from PIL import Image
+import conversion
 # Visualizza la numerosità delle colate in ogni cella
 def create_image_from_map(l_map):
     img = np.zeros([l_map.shape[0], l_map.shape[1]], dtype=np.uint8)
@@ -35,7 +36,7 @@ def create_image_from_npy(npyfilename, imgfilename):
     image.save(imgfilename)
 
 def print_notn(notN_filename):
-    coord_vent = utility.vent_in_dem(notN_filename)
+    coord_vent = conversion.vent_in_dem(notN_filename)
     img_filename = "Extra/not_n/" + notN_filename
     notN_filename = "Data/simulations/" + notN_filename
     dem_map= np.zeros((2275, 1875), dtype=np.uint8)
@@ -49,14 +50,3 @@ def print_notn(notN_filename):
     dem_map [coord_vent[0]][coord_vent[1]]=255
     image = Image.fromarray(dem_map)
     image.save(img_filename[:-3] + "png")
-
-'''def graph_to_pic(G, pic_filename):
-    pic = Image.open("./Extra/Etna91x75.jpg")
-    for n in G.nodes:
-        if G.node[n]["awash"] == 1:
-            region_list = G.node[n]["coord_regions"].split("|")
-            for s in region_list:
-                coord = utility.cast_coord_attr(s)
-                pic.putpixel((coord[0], coord[1]), 255)
-    photo = Image.fromarray(pic)
-    photo.save(pic_filename)'''

@@ -6,7 +6,7 @@ import os
 import graph_algorithm as ga
 import graph_maker as gm
 import map_creator as mc
-
+import conversion
 from scipy import sparse
 
 
@@ -50,62 +50,13 @@ def write_in_csv(csv_filename, l_map):
                     print("Line ", line_count, " processed")
     print("CSV written")
 
-def id_from_not_n(not_n_filename):
-    id_vent = int(not_n_filename[10: -6])-1
-    return id_vent
-
-# Conversion coordinate griglia vent in griglia DEM
-def vent_in_dem(id_vent):
-    # numero di righe della griglia dei vent
-    ROWS_VENT = 73
-    # ampiezza in metri quadrati di ogni cella della griglia vent
-    STEP_VENT = 500
-    # estremi coordinate nord e ovest della griglia dei vent
-    EASTING_MIN_VENT = 482490
-    NORTHING_MAX_VENT = 4191990
-
-    # estremi coordinate nord e ovest della griglia DEM
-    NORTHING_MAX_DEM = 4192500
-    EASTING_MIN_DEM = 482500
-    # ampiezza in metri quadrati di ogni cella della griglia DEM
-    STEP_DEM = 20
-
-    # calcola coordinate della bocca nella griglia vent 
-    x_vent = id_vent % ROWS_VENT
-    y_vent = int(id_vent/ROWS_VENT)
-
-    # calcola le coordinate nord e est della bocca
-    northing_vent = NORTHING_MAX_VENT - (STEP_VENT * x_vent)
-    easting_vent = EASTING_MIN_VENT + (STEP_VENT * y_vent)
-    # calcola le coordinate della bocca nella griglia DEM
-    x_dem = int((NORTHING_MAX_DEM - northing_vent) / STEP_DEM)
-    y_dem =int((easting_vent - EASTING_MIN_DEM) / STEP_DEM)
-
-    return (x_dem, y_dem)
-
-# casta le coordinate. "(row, col)" --> row col
-def cast_coord_attr(coord):
-    coord = coord.replace('(', '')
-    coord = coord.replace(')', '')
-    coord_x, coord_y = coord.split(',')
-    coord_x = int(coord_x)
-    coord_y = int(coord_y)
-    return coord_x, coord_y
-    
 def load_graph():
-    if os.path.exists("graph_gexf/scaled_map91x75_normalized.gexf"):
-        G = nx.read_gexf("graph_gexf/scaled_map91x75_normalized.gexf")
+    if os.path.exists("graph_gexf/graphlow.gexf"):
+        G = nx.read_gexf("graph_gexf/graphlow.gexf")
         return G
     else:
         print("Graph does not exists.")
         return None
-
-def get_node_from_idvent(id_vent):
-    id_vent = int(id_vent)
-    coord_vent = vent_in_dem(id_vent)
-    G = load_graph()
-    node = ga.get_id_from_coord(G, coord_vent)
-    return node
 
 # Metodo per esportare il grafo sottoforma di matrice di adiacenza
 # Taglio gli archi (v, u) se (v, u).trasmit < (u, v). trasmit
@@ -131,7 +82,7 @@ def unify_sims(id_vent, char):
     current_vent_files = []
     
     for filename in filelist:
-        if int(id_vent) == id_from_not_n(filename) + 1:
+        if int(id_vent) == conversion.id_from_not_n(filename) + 1:
             current_vent_files.append(filename)
             
     lines_to_write = []
@@ -144,13 +95,6 @@ def unify_sims(id_vent, char):
     flows = np.zeros((91, 75), dtype=float)
     count = 0
     for line in lines_to_write:  
-##################### Mostro la percentuale di completamento ##############################################################
-        percentage = (100 * count)/len(lines_to_write)
-        mod = percentage % 5
-        if mod == 0 and not int(percentage) == 0 and not mod < 1:
-            print(str(percentage) + " %")
-###########################################################################################################################
-
         row, col = line.split()
         row = int(int(row)/25)
         col = int(int(col)/25)
@@ -168,293 +112,16 @@ def unify_sims(id_vent, char):
     sparse.save_npz("sparse/sparse_sim_" + char + "_" + str(id_vent) + ".npz", sparse_matrix, compressed = True)
     return sparse_matrix
 
-# si ottiene un id_node da coordinate di una matrice 91x75
-def get_id_node_from_scaledcoord(G, row, col):
-    for u in G.nodes():
-        regions = G.node[u]["coord_regions"].split("|")
-        for reg in regions:
-            reg_row, reg_col = cast_coord_attr(reg)
-            if reg_row == row and reg_col == col:
-                return int(u)
-    u = -1
-    return u
-
-def vect_to_matrix(id_vent, propagation_method): #aggiungere intero 1/2/3
-    #############################################
-    # propagation_method = 1 ---> trivector     #
-    #                    = 2 ---> eruption      #
-    #                    = 3 ---> proberuption #
-    #############################################
-    if propagation_method == 1:
-        vect_filename = "sparse/trivector_" + str(id_vent) + ".npz"
-        matrix_filename = "sparse/M_trivector_" + str(id_vent) + ".npz"
-    elif propagation_method == 2:
-        vect_filename = "sparse/eruption_" + str(id_vent) + ".npz"
-        matrix_filename = "sparse/M_eruption_" + str(id_vent) + ".npz"
-    elif propagation_method == 3:
-        vect_filename = "sparse/proberuption_" + str(id_vent) + ".npz"
-        matrix_filename = "sparse/M_proberuption_" + str(id_vent) + ".npz"
-
-    M = np.zeros((91, 75), dtype=float)
-    sparse_vect = sparse.load_npz(vect_filename)
-    array = sparse_vect.toarray()[0]
-    G = load_graph()
-
-    for u in G.nodes():
-        regions = G.node[u]["coord_regions"].split("|")
-        for reg in regions:
-            reg_row, reg_col = cast_coord_attr(reg)
-            M[reg_row][reg_col] = array[int(u)]
-
-    sparse_M = sparse.csr_matrix(M)
-    sparse.save_npz(matrix_filename, sparse_M)
-
-# ottiene una matrice da un vettore per poter esportare una matrice sparsa (serve a calcolare la metrica di fitting)
-def vect_to_matrix_old(id_vent): # cambiare in filename del vect
-    M = np.zeros((91, 75), dtype=float)
-    sparse_vect = sparse.load_npz("sparse/npvect_probErup_" + str(id_vent) + ".npz")
-    array = sparse_vect.toarray()[0]
-    G = load_graph()
-    for row in range(0, M.shape[0]):
-        if row % 20 ==0 or row == 90:    
-            print ((100 * row)/100,"%")
-        for col in range(0, M.shape[1]):
-            id_node = get_id_node_from_scaledcoord(G, row, col)
-            if not id_node == -1:
-                M[row][col] = array[int(id_node)]
-    
-    sparse_M = sparse.csr_matrix(M)
-    sparse.save_npz("sparse/sparseM_probErup_" + str(id_vent) + ".npz", sparse_M)
-
-# calcola la differenza tra due matrici e ritorna l'errore assoluto medio
-#                                                       |.-> sum(|M1 - M2|)
-def MAE_metric(id_vent, unify_type):
-    sparse_path = "sparse/"
-    prob_erup_sparse_file = sparse_path + "sparseM_probErup_" + str(id_vent) + ".npz"
-    udsim_sparse_file = sparse_path + "sparse_sim_d_" + str(id_vent) + ".npz"
-    ucsim_sparse_file = sparse_path + "sparse_sim_c_" + str(id_vent) + ".npz"
-
-    if not os.path.isfile(prob_erup_sparse_file):
-        print("sparse matrix of this vent does not exists!")
-        return
-    if unify_type == "d":
-        if not os.path.isfile(udsim_sparse_file):
-            tmp_M = unify_sims(id_vent, unify_type)
-            mc.matrix_to_UTM(tmp_M, id_vent, unify_type)
-        M_sim = sparse.load_npz(udsim_sparse_file)
-        M_sim = M_sim.toarray() 
-    else:
-        if not os.path.isfile(ucsim_sparse_file):
-            tmp_M = unify_sims(id_vent, unify_type)
-            mc.matrix_to_UTM(tmp_M, id_vent, unify_type)
-        M_sim = sparse.load_npz(ucsim_sparse_file)
-        M_sim = M_sim.toarray()
-
-    M_prob = sparse.load_npz(prob_erup_sparse_file)
-    M_prob = M_prob.toarray()
-    ######################### calcolo la differenza tra matrici e errore cumulativo ########################################
-    cumulative_err = 0
-    error_matrix = np.zeros((M_sim.shape[0], M_sim.shape[1]), dtype='float')
-    for row in range(0, M_sim.shape[0]):
-        for col in range(0, M_sim.shape[1]):
-            error = abs(M_sim[row][col] - M_prob[row][col])
-            error_matrix[row][col] = error
-            cumulative_err += error
-    #########################################################################################################################
-    MAE = cumulative_err/(error_matrix.shape[0] * error_matrix.shape[1])
-    print("\nMean Absolute Error (" + unify_type + "):", MAE, "\n")
-
-# calcola un valore che rappresenta una metrica di fitting
-# 
-def hit_metric(id_vent):
-    sparse_path = "sparse/"
-    graphlow_sparse_file = sparse_path + "sparseM_probErup_" + str(id_vent) + ".npz"
-    M_graphlow = sparse.load_npz(graphlow_sparse_file).toarray()
-    udsim_sparse_file = sparse_path + "sparse_sim_d_" + str(id_vent) + ".npz"
-    if not os.path.isfile(udsim_sparse_file):
-        unify_sims(id_vent, 'd')
-    M_sim_sparse = sparse.load_npz(udsim_sparse_file).toarray()
-
-    count_inters = 0
-    count_union = 0
-    for row in range(0, M_graphlow.shape[0]):
-        for col in range(0, M_graphlow.shape[1]):
-            if M_sim_sparse[row][col] > 0 and M_graphlow[row][col] > 0: 
-                count_inters += 1
-            if M_sim_sparse[row][col] > 0 or M_graphlow[row][col] > 0:
-                count_union += 1
-    hit = count_inters / count_union
-    print("HIT metric:", hit, "\n")
-
-
-#    | eruption | real  |
-# TP |     V    |   V   |
-# TN |     X    |   X   |
-# FP |     V    |   X   |
-# FN |     X    |   V   |
-def compute_metrics(id_vent, propagation_method):
-    #############################################
-    # propagation_method = 1 ---> trivector     #
-    #                    = 2 ---> eruption      #
-    #                    = 3 ---> proberuption  #
-    #############################################
-    if propagation_method == 1:
-        graphlow_sparse_file = "sparse/M_trivector_" + str(id_vent) + ".npz"
-    elif propagation_method == 2:
-        graphlow_sparse_file = "sparse/M_eruption_" + str(id_vent) + ".npz"
-    elif propagation_method == 3:
-        graphlow_sparse_file = "sparse/M_proberuption_" + str(id_vent) + ".npz"
-    
-    M_graphlow = sparse.load_npz(graphlow_sparse_file).toarray()
-    # real[row][col] = 0 o 1
-    udsim_sparse_file = "sparse/sparse_sim_d_" + str(id_vent) + ".npz"
-    # real[row][col] = TRA 0 e 1
-    ucsim_sparse_file = "sparse/sparse_sim_c_" + str(id_vent) + ".npz"
-    
-    if not os.path.isfile(udsim_sparse_file):
-        sparse_matrix = unify_sims(id_vent, 'd')
-        mc.matrix_to_UTM(sparse_matrix, id_vent, 'd')
-    if not os.path.isfile(ucsim_sparse_file):
-        unify_sims(id_vent, 'c')
-        mc.matrix_to_UTM(sparse_matrix, id_vent, 'c')
-        
-    M_real_d = sparse.load_npz(udsim_sparse_file).toarray()
-    M_real_c = sparse.load_npz(ucsim_sparse_file).toarray()
-    
-
-    fp = 0      # Contatore di fp booleano
-    tp = 0      # Contatore di tp booleano
-    tn = 0      # Contatore di tn booleano
-    fn = 0      # Contatore di fn booleano
-    
-    tp_c = 0    # ACCUMULATORE tp
-    tn_c = 0    # ACCUMULATORE tn
-    fp_c = 0    # ACCUMULATORE fp
-    fn_c = 0    # ACCUMULATORE fn
-
-    # Errori per MAE
-    cumulative_err_d = 0
-    cumulative_err_c = 0
-
-    #variabili che servono a calcolare TPR e precision entrambi nel caso continuo
-    sum_real = 0
-    sum_graphlow = 0
-
-    maxes = 0
-
-    for row in range(0, M_graphlow.shape[0]):
-        for col in range(0, M_graphlow.shape[1]):
-            if M_graphlow[row][col] > 0 and M_real_d[row][col] > 0:     # tp
-                tp += 1
-            if M_graphlow[row][col] > 0 and M_real_d[row][col] == 0:    # fp
-                fp += 1
-            if M_graphlow[row][col] == 0 and M_real_d[row][col] == 0:   # tn
-                tn += 1
-            if M_graphlow[row][col] == 0 and M_real_d[row][col] > 0:   # fn 
-                fn += 1
-
-            tp_c += min(M_real_c[row][col], M_graphlow[row][col])
-            tn_c += min(1 - M_real_c[row][col], 1 - M_graphlow[row][col])
-            fp_c += min(1 - M_real_c[row][col], M_graphlow[row][col])
-            fn_c += min(M_real_c[row][col], 1 - M_graphlow[row][col])
-
-            error_d = abs(M_real_d[row][col] - M_graphlow[row][col])
-            error_c = abs(M_real_c[row][col] - M_graphlow[row][col])
-            cumulative_err_d += error_d
-            cumulative_err_c += error_c
-
-            sum_graphlow += M_graphlow[row][col]
-            sum_real += M_real_c[row][col]
-
-            maxes += max(M_real_c[row][col], M_graphlow[row][col])
-
-    #################### calcolo le metriche ########################  
-    mae_d = round(cumulative_err_d/(M_real_d.shape[0] * M_real_d.shape[1]), 2)
-    mae_c = round(cumulative_err_c/(M_real_c.shape[0] * M_real_c.shape[1]), 2)
-    precision = ppv(tp, fp)
-    precision_c = round(tp_c / sum_graphlow, 2)
-    tpr = tp_rate(tp, fn)
-    tpr_c = round(tp_c / sum_real, 2)
-    acc = accuracy(tp, tn, fp, fn)
-    hit = hit_rate(tp, fp, fn)
-    # maxes = sum(max(real, graphlow))
-    hit_c = round(tp_c / maxes, 2)
-    F1 = f1(precision,tpr)
-    F1_c = f1(precision_c, tpr_c)
-    #################################################################
-
-    return precision, precision_c, tpr, tpr_c, acc, hit, hit_c, mae_d, mae_c, F1, F1_c
-
-# precision = PPV = tp/(tp + fp)
-def ppv(tp, fp):
-    if not tp + fp == 0:
-        precision = tp/ (tp + fp)
-    else:
-        precision = 0
-    return round(precision, 2)
-
-# TPR = RECALL = tp/(tp + fn)
-def tp_rate(tp, fn):
-    if not tp + fn == 0:
-        tpr = tp/ (tp + fn)
-    else:
-        tpr = 0
-    return round(tpr, 2)
-
-# hit_rate = tp / (fp + fn + tp)
-def hit_rate(tp, fp, fn):
-    if not fp + fn + tp == 0:
-        hit = tp / (fp + fn + tp)
-    else:
-        hit = 0
-    return round(hit, 2)
-
-# acc = (tp + tn) / (tp + fp + tn + fn)
-def accuracy(tp, tn, fp, fn):
-    if not tp + fp + tn + fn == 0:
-        acc = (tp + tn) / (tp + fp + tn + fn)
-    else:
-        acc = 0
-    return round(acc, 2)
-
-def f1(precision, tpr):
-    if not precision == 0 and not tpr == 0:
-        f1 = 2 * precision * tpr / (precision + tpr)
-    else:
-        f1 = 0
-    return round(f1, 2)
-
-# metodo che serve per creare il vettore sparso, la matrice sparsa e l'ascii grid di un'eruzione
-def ascii_creator(id_vent, propagation_method):
-    #crea il vettore
-
-    #crea la matrice
-
-    #esporta l'ascii grid
-    return
-
-# inserisce le metriche in tre matrici e le ritorna.
-'''
-                TRIVECTOR
-       | ppvc | ppv  | tpr  | tprc |
-vent1  | 4444 | 4444 | 4444 | 4444 |
-vent2  |        |        |     |        |
-vent3  |        |        |     |        |
-.      |        |        |     |        |
-.      |        |        |     |        |
-.      |        |        |     |        |
-ventM  |        |        |     |        |
-
-'''  
 def init_table(propagation_method):
     print("\n\n                                  " + propagation_method)
-    metric_name_list = ["VENT", "PPV ", "PPVC", "TPR ", "TPRC", "ACC ", "HIT ", "HITC", "MAED", "MAEC", "F1  ", "F1C "]
+    metric_name_list = ["VENT  ", " PPV   ", " PPVC  ", " TPR   ", " TPRC  ", " HIT   ", " HITC  ", " F1    ", " F1C   "]
     for metric in metric_name_list:
         print("| " + metric, end = " ")
     print("|")
 
 def create_row_table(metric_list, vent):
-    print("| " + vent.ljust(5, " "), end="")
+    print("| " + vent.ljust(7, " "), end="")
     for metric in metric_list:
-        print("| " + str(metric).ljust(4, "0"), end = " ")
+        metric = format(metric, ".1e")
+        print("| " + str(metric), end = " ")
     print("|")

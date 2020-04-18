@@ -3,11 +3,11 @@ import sys, getopt
 
 def switch_command(cmd):
     if cmd[0] == "trivector":
-        commands.trivector(*cmd[1:])
+        commands.trivector_cmd(*cmd[1:])
     elif cmd[0] == "eruption":
-        commands.eruption1(*cmd[1:])
-    elif cmd[0] == "proberuption":
-        commands.prob_eruption_(*cmd[1:])
+        commands.eruption_cmd(*cmd[1:])
+    elif cmd[0] == "montecarlo":
+        commands.montecarlo_cmd(*cmd[1:])
     elif cmd[0] == "showsim":
         commands.show_sim(*cmd[1:])
     elif cmd[0] == "man":
@@ -17,20 +17,8 @@ def switch_command(cmd):
         return 0
     elif cmd[0] == "test": # comando per testare metodi
         commands.test(*cmd[1:])
-    elif cmd[0] == "norm": # normalizza 
-        commands.norm_weight()
-    elif cmd[0] == "unify": # unifica le simulazioni
-        #if cmd[2] == 'c' or cmd[2] == 'd':
-        commands.unify(*cmd[1:])
-        #else:
-            #print("insert 'd' or 'c' after id_vent. 'd' = discrete, 'c' = continuous")
     elif cmd[0] == "nodefromvent":
         commands.node_from_idvent(*cmd[1:])
-    elif cmd[0] == "mae":
-        if len(cmd) == 1:
-            print("Insert a vent id.")
-        else:
-            commands.MAE_metric(*cmd[1:])
     elif cmd[0] == "compare": # aggiunta di -w to a file
             commands.compare(*cmd[1:])
     else:

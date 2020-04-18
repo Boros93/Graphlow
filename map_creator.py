@@ -2,6 +2,7 @@ import networkx as nx
 import utility
 import numpy as np
 import graph_algorithm as ga
+import conversion
 from scipy import sparse
 
 # ============================ HEADER =============================
@@ -24,7 +25,7 @@ def graph_to_UTM(G, filename):
 
     for u, data in G.nodes(data = True):
         for coords in data["coord_regions"].split("|"):
-            coord_x, coord_y = utility.cast_coord_attr(coords)
+            coord_x, coord_y = conversion.cast_coord_attr(coords)
             utm_map[coord_x][coord_y] = data["current_flow"]
     # scrittura header
     with open(filename, 'w') as utmfile:
@@ -36,30 +37,20 @@ def graph_to_UTM(G, filename):
                 utmfile.write(str(utm_map[x][y]) + " ")
             utmfile.write("\n")
 
-def matrix_to_UTM(sparse_matrix, id_vent, unify_type = 'c', eruption_method = 0):  #metodo che serve per convertire vettori sparsi in formato utm
-                            #utilizzato per applicare le metriche di fitting
-                            # sparse_matrix è un vettore sparso di uno
-    if eruption_method == 0:
-        sparse_matrix = sparse.load_npz("sparse/sparse_sim_" + unify_type + "_" + str(id_vent) + ".npz")
-        utm_filename = "ASCII_grids/u" + unify_type + "sim_" + str(id_vent) + ".txt"
-    elif eruption_method == 1:
-        sparse_matrix = sparse.load_npz("sparse/M_trivector_" + str(id_vent) + ".npz")
-        utm_filename = "ASCII_grids/trivector_" + str(id_vent) + ".txt"
-    elif eruption_method == 2:
-        sparse_matrix = sparse.load_npz("sparse/M_eruption_" + str(id_vent) + ".npz")
-        utm_filename = "ASCII_grids/eruption_" + str(id_vent) + ".txt"
-    elif eruption_method == 3:
-        sparse_matrix = sparse.load_npz("sparse/M_proberuption_" + str(id_vent) + ".npz")
-        utm_filename = "ASCII_grids/proberuption_" + str(id_vent) + ".txt"
-
-    M = sparse_matrix.toarray()
-    
+# Metodo che crea il file ascii data una matrice sparsa
+def ascii_creator(id_vent, propagation_method, sparse_matrix):
+    utm_filename = "ASCII_grids/" + propagation_method + "_" + str(id_vent) + ".txt"
+    M = sparse_matrix.toarray() 
     with open(utm_filename, 'w') as utmfile:
+        # Scrittura dell'header del file (northing...)
         for i in range(0, len(header)):
             utmfile.write(header[i] + "\n")
-    
+        # Scrittura valori nel DEM
         for x in range(0, ROWS):
             for y in range(0, COLS):
-                utmfile.write(str(M[x][y]) + " ")
+                if M[x][y] == 0:
+                    utmfile.write("0" + " ")
+                else:
+                    utmfile.write(str(M[x][y]) + " ")
             utmfile.write("\n")
     

@@ -38,5 +38,5 @@ else:
         G = ga.set_node_rank(G, sim)
         i +=1
     G = gm.normalize_trasmittance(G)
-    #gm.export_graph(G, filename + "_normalized.gexf", is_first_time = False)
+    gm.export_graph(G, filename + "_normalized.gexf", is_first_time = False)
 
