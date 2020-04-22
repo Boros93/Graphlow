@@ -195,8 +195,7 @@ def visualize_and_metrics(id_vent, propagation_method, sparse_matrix, header):
     utility.create_row_table(metric_list, id_vent)
 
 def test():
-    city, names = mc.create_city_map()
-    G = load_graph()
+    return
     
 
     

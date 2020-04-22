@@ -70,8 +70,8 @@ def utm_to_matrix(x_utm, y_utm):
     if x_utm > EASTING_MIN_DEM and x_utm < EASTING_MAX_DEM and y_utm > NORTHING_MIN_DEM and y_utm < NORTHING_MAX_DEM:
         # ritorna 
         # 515092.859538545,4185142.66594326
-        x_dem = int((x_utm - EASTING_MIN_DEM) / STEP_DEM)
-        y_dem = int((NORTHING_MAX_DEM - y_utm) / STEP_DEM)
+        y_dem = int((x_utm - EASTING_MIN_DEM) / STEP_DEM)
+        x_dem = int((NORTHING_MAX_DEM - y_utm) / STEP_DEM)
     else:
         return [-1, -1]
 

@@ -7,7 +7,7 @@ from statistics import median
 import os
 import numpy as np
 import conversion
-
+import map_creator as mc
 def create_graph(l_map):
     G = nx.DiGraph()
     ''' Aggrega le regioni, restituendo una lista formata da altre due liste di tipo Region:
@@ -210,4 +210,15 @@ def normalize_weight(G):
             G.edges[u, v]["weight"] =  G.edges[u, v]["weight"] / sum_weight
     return G
 
-            
+def add_cities(G):
+    # Estrapola dal file gml le coordinate e i nomi degli edificati
+    city, names = mc.create_city_map()
+    # Per ogni nodo, si va a prendere dalla matrice il corrispondente paese
+    for u, data in G.nodes(data = True):
+        for coords in data["coord_regions"].split("|"):
+            coord_x, coord_y = conversion.cast_coord_attr(coords)
+            G.node[u]['is_city'] = city[coord_x][coord_y]
+            # Controllo fatto perché la matrice di default ha valore 0
+            if not names[coord_x][coord_y] == 0:
+                G.node[u]['city_names'] += str(names[coord_x][coord_y])
+    return G           

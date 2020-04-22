@@ -5,6 +5,7 @@ import random
 from scipy import sparse
 import numpy as np
 import conversion
+import map_creator as mc
 def set_node_rank(G, not_n_filename):
     # inserisco nella lista il nodo per poter azzerarne il rango alla fine.
     not_n_nodes = []
@@ -64,7 +65,13 @@ def next_to_current(current_queue, next_queue):
         current_queue.put(next_queue.get())
     return current_queue
 
-
+def sim_to_graph(G_original, not_n_filename):
+    G = set_node_rank(G_original, not_n_filename)
+    for u, v, data in G.edges(data = True):
+        if not data["transmit_rank"] == 0:
+            G.node[u]["current_flow"] = 1
+            G.node[v]["current_flow"] = 1
+    return G
 
 '''def eruption(G, id_vent, volume, n_days, alpha, threshold):
     volume_per_day = int(volume/n_days)
@@ -117,7 +124,7 @@ def next_to_current(current_queue, next_queue):
 
 # eruption con controlli su transmitrank e senza controlli su altezze
 # transmit_rank(u, v) - transmit_rank(v, u) > epsilon 
-def eruption1_old(G, id_vent, volume, n_days, alpha):
+"""def eruption1_old(G, id_vent, volume, n_days, alpha):
     volume_per_day = int(volume/n_days)
     volume_remaining = volume
     node_to_visit=[]
@@ -182,7 +189,7 @@ def eruption1_old(G, id_vent, volume, n_days, alpha):
     
     sparse_vect = sparse.csr_matrix(vect)
     sparse.save_npz("sparse/eruption_" + str(id_vent) + ".npz", sparse_vect, compressed = True)
-    return G
+    return G"""
 
 '''def eruption_new(G, id_vent, threshold):
     print(threshold)
@@ -283,11 +290,3 @@ def eruption1_old(G, id_vent, volume, n_days, alpha):
                             G.node[current_node]["marked"] = True
                             next_queue.put(neigh)'''
             
-def sim_to_graph(G_original, not_n_filename):
-    G = set_node_rank(G_original, not_n_filename)
-    for u, v, data in G.edges(data = True):
-        if not data["transmit_rank"] == 0:
-            G.node[u]["current_flow"] = 1
-            G.node[v]["current_flow"] = 1
-    
-    return G
