@@ -54,7 +54,7 @@ def create_nodes(G, list_node):
 
             G.add_node(id_node, region_list = region_list, near_node_list = near_node_list, n_region = n_region,
                     n_sim = n_sim, x = x, y = y, coord_regions = coord_regions, rank = -1, is_vent = 0,
-                    height = height, current_flow = 0.0, awash = False)
+                    height = height, current_flow = 0.0, awash = False, is_city = 0, city_names = "")
             id_node += 1
     print("Done.")
 
@@ -97,13 +97,13 @@ def export_graph(G, filename, is_first_time):
             G_copy.add_node(u, region_list = region_list, n_region = data['n_region'], n_sim = data['n_sim'],
                             x = - int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], 
                             rank = data["rank"], is_vent = data["is_vent"], height = data["height"], 
-                            current_flow = data["current_flow"], awash = data["awash"])
+                            current_flow = data["current_flow"], awash = data["awash"], is_city = 0, city_names = "")
         else:
             region_list = data["region_list"]
             G_copy.add_node(u, region_list = region_list, n_region = data['n_region'], n_sim = data['n_sim'],
                             x = int(data['x']), y = int(data['y']), coord_regions = data["coord_regions"], 
                             rank = data["rank"], is_vent = data["is_vent"], height = data["height"],
-                            current_flow = data["current_flow"], awash = data["awash"])
+                            current_flow = data["current_flow"], awash = data["awash"], is_city = 0, city_names = "")
         
     for node1, node2, data in G.edges(data=True):
         G_copy.add_edge(node1, node2, weight = data['weight'], transmit_rank = data["transmit_rank"], slope = data["slope"],
