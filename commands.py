@@ -95,9 +95,9 @@ def random_vent(*parameter_list):
     # Genera n vent casualmente
     vent_list = []
     for i in range(0, n_vents):
-        x = random.randint(4, 4814)
+        x = random.randint(74, 4814)
         while str(x) in vent_list:
-            x = str(random.randint(4, 4814))
+            x = str(random.randint(74, 4814))
         vent_list.append(str(x))
     return vent_list
 
@@ -183,6 +183,7 @@ def montecarlo_cmd(id_vent, n_epochs = -1, second_chance = -1, header = False):
     # Esportazione in ASCII e calcolo metriche
     visualize_and_metrics(id_vent, "montecarlo", sparse_matrix, header)
 
+
 def visualize_and_metrics(id_vent, propagation_method, sparse_matrix, header):
     # Esportazione in ASCII Grid
     mc.ascii_creator(id_vent, propagation_method, sparse_matrix)
@@ -193,6 +194,8 @@ def visualize_and_metrics(id_vent, propagation_method, sparse_matrix, header):
     if not header == True:  
         utility.init_table(propagation_method)
     utility.create_row_table(metric_list, id_vent)
+    
+    return metric_list
 
 def test():
     return
