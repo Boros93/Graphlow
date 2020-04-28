@@ -198,15 +198,7 @@ def visualize_and_metrics(id_vent, propagation_method, sparse_matrix, header):
     return metric_list
 
 def test(id_vent):
-    """trivector_cmd(id_vent)
-    trivector_cmd(str(int(id_vent)-1))
-    trivector_cmd(str(int(id_vent)+1))
-    trivector_cmd(str(int(id_vent)+72))
-    trivector_cmd(str(int(id_vent)-72))"""
-    trivector_cmd("1142")
-    trivector_cmd("1144")
-    trivector_cmd("1145")
-    return
+    utility.node_vent_csv()
     
 
     

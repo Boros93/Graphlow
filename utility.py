@@ -8,6 +8,7 @@ import graph_maker as gm
 import map_creator as mc
 import conversion
 from scipy import sparse
+from glob import glob
 
 
 # Metodo per caricare una linked map da file CSV
@@ -125,3 +126,25 @@ def create_row_table(metric_list, vent):
         metric = format(metric, ".1e")
         print("| " + str(metric), end = " ")
     print("|")
+
+#dato l'id di un nodo, ritorna l'id del vent
+def node_vent_csv():
+    vent_list = []
+    file_list = glob("Data/simulations/*")
+    for file in file_list:
+        id_vent = conversion.id_from_not_n(file[17:])
+        if id_vent not in vent_list:
+            vent_list.append(id_vent)
+            
+    out_file = "node_vent_csv.csv"
+    count = 0
+    with open(out_file, 'w', newline='') as csvfile:
+        filewriter = csv.writer(csvfile, delimiter=',')
+        for v in vent_list:
+            # scrive la linea id_vent,id_node
+            id_node = conversion.get_node_from_idvent(v)
+            print(id_node, v)
+            filewriter.writerow([id_node, v])
+            if count > 2:
+                return
+            count += 1

@@ -1,21 +1,4 @@
-_pycache_
 Data
-*.csv
-__pycache__/commands.cpython-37.pyc
-
-__pycache__/graph_algorithm.cpython-37.pyc
-
-__pycache__/graph_maker.cpython-37.pyc
-
-__pycache__/init_map.cpython-37.pyc
-
-__pycache__/map_creator.cpython-37.pyc
-
-__pycache__/processing.cpython-37.pyc
-
-__pycache__/region.cpython-37.pyc
-
-__pycache__/utility.cpython-37.pyc
 
 __pycache__/*
 
@@ -50,3 +33,5 @@ graph_gexf/*
 sparse/*
 
 ASCII_grids/*
+
+nn/dataset/*
