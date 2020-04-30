@@ -5,6 +5,7 @@ import utility
 import networkx as nx
 import numpy as np 
 import os
+from scipy import sparse
 
 # ottiene un vettore di cardinalità 5820 dalle simulazioni unificate di MAGFLOW
 def vect_sim(id_vent):
@@ -60,3 +61,25 @@ def split_dataset():
         filename = os.path.basename(filename)
         # sposta il file nella cartella del train_set
         os.rename(dataset_path + filename, dataset_path + train_set_path + filename)
+
+# inserisce i pesi ottenuti dall'allenamento nei nodi del grafo.
+def set_new_G_weights():
+    G = utility.load_graph()
+    # carico i pesi da inserire in G
+    W = sparse.load_npz("weights_relu.npz").toarray() #5820 x 5820
+
+    min_W = np.min(W)
+    max_W = np.max(W)
+    for i in range(0, W.shape[0]):
+        for j in range(0, W.shape[1]):
+            W[i][j] = (W[i][j] - min_W) / (max_W - min_W)
+
+    min_W = np.min(W)
+    max_W = np.max(W)
+    for u,v,data in G.edges(data=True):
+        G.edges[u,v]["prop_weight"] = (W[int(u)][int(v)] - min_W) / (max_W - min_W)
+
+    nx.write_gexf(G, "test_relu.gexf")
+
+
+set_new_G_weights()

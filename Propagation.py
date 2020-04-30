@@ -35,6 +35,10 @@ class Propagation:
         # Creazione di due code, la prima per il ciclo interno e la seconda per quello esterno
         node_to_visit = queue.Queue()
         support_queue = queue.Queue()
+
+        #definisce la chiave da controllare 
+        key_to_control = "trasmittance" 
+
         # Iniziamo mettendo i vicini della root nella coda esterna
         for v in self.G.successors(root):
             support_queue.put(v)
@@ -62,7 +66,7 @@ class Propagation:
                     product2 = 1
                     for beta in range(0, len(pred)):
                     # memorizzo il valore della trasmittanza dell'arco (beta, j)
-                        a = self.G.edges[str(pred[beta]), j_node]["trasmittance"]
+                        a = self.G.edges[str(pred[beta]), j_node][key_to_control]
                         # prima produttoria
                         if beta < alpha:
                             product1 *= 1 - (a * vect2[pred[beta]])
@@ -70,7 +74,7 @@ class Propagation:
                             product2 *= 1 - a * vect1[pred[beta]]
                     partial = product1 * product2
                     partial *= (vect2[pred[alpha]] - vect1[pred[alpha]])
-                    increment += (partial * self.G.edges[str(pred[alpha]), j_node]["trasmittance"])
+                    increment += (partial * self.G.edges[str(pred[alpha]), j_node][key_to_control])
                 
                 # Soglia dell'incremento
                 if increment > self.tri_threshold:
@@ -90,7 +94,7 @@ class Propagation:
         # Inserisco i flow calcolati nei nodi 
         for index in range(0, len(vect3)):
             value = float(vect3[index])
-            self.G.node[str(index)]['current_flow'] = value
+            self.G.nodes[str(index)]['current_flow'] = value
         # Esportazione in matrice sparsa
         sparse_matrix = self.export_sparse(vect3, id_vent, "trivector")
         return sparse_matrix
@@ -104,22 +108,24 @@ class Propagation:
         # Inizializzazione root
         root = conversion.get_node_from_idvent(int(id_vent))
         node_to_visit.append(root)
-        self.G.node[root]["current_flow"] = volume_per_day
+        self.G.nodes[root]["current_flow"] = volume_per_day
         volume_remaining -= volume_per_day
         day_count = 1
+
+        key_to_control = "prop_weight"
         while volume_remaining > 0:
             # Ciclo esterno che gestisce il flusso giornaliero nella root
-            self.G.node[root]["current_flow"] += volume_per_day
+            self.G.nodes[root]["current_flow"] += volume_per_day
             volume_remaining -= volume_per_day
             day_count += 1
             while not len(node_to_visit) == 0:
                 temp_list = []
                 for u in node_to_visit:
                     for v in self.G.successors(u):
-                        u_flow = self.G.node[u]["current_flow"]
-                        v_flow = self.G.node[v]["current_flow"]
-                        u_height = self.G.node[u]["height"]
-                        v_height = self.G.node[v]["height"]
+                        u_flow = self.G.nodes[u]["current_flow"]
+                        v_flow = self.G.nodes[v]["current_flow"]
+                        u_height = self.G.nodes[u]["height"]
+                        v_height = self.G.nodes[v]["height"]
                         # Controllo delle altezze
                         delta_h = (u_flow + u_height) - (v_flow + v_height)
                         # Se la differenza delle altezze effettive è minore di 0, allora non propaga 
@@ -128,9 +134,9 @@ class Propagation:
                         delta_h = min(delta_h, u_flow)
                         temp = (u_flow + u_height)/(v_flow + v_height) - 1
                         # Se la differenza tra la trasmittanza ad uscire e quella ad entrare è minore di una soglia
-                        if  self.G.edges[u, v]["trasmittance"] - self.G.edges[v, u]["trasmittance"] > self.eru_threshold:
+                        if  self.G.edges[u, v][key_to_control] - self.G.edges[v, u][key_to_control] > self.eru_threshold:
                             # Allora propago
-                            self.G.edges[u, v]["forwarding_flow"] = self.G.edges[u, v]["trasmittance"] * alpha * delta_h * (1/ (1 + math.exp(-temp)))
+                            self.G.edges[u, v]["forwarding_flow"] = self.G.edges[u, v][key_to_control] * alpha * delta_h * (1/ (1 + math.exp(-temp)))
                             # Minimo flusso che si può trasmettere (minimo 0.1)
                             if u not in temp_list and self.G.edges[u, v]["forwarding_flow"] > 0.1:
                                 temp_list.append(u)
@@ -139,8 +145,8 @@ class Propagation:
                     for u in node_to_visit:
                         for v in self.G.successors(u):
                             if self.G.edges[u, v]["forwarding_flow"] > 0:
-                                self.G.node[v]["current_flow"] += self.G.edges[u, v]["forwarding_flow"]
-                                self.G.node[u]["current_flow"] -= self.G.edges[u, v]["forwarding_flow"]
+                                self.G.nodes[v]["current_flow"] += self.G.edges[u, v]["forwarding_flow"]
+                                self.G.nodes[u]["current_flow"] -= self.G.edges[u, v]["forwarding_flow"]
                                 self.G.edges[u, v]["forwarding_flow"] = 0.0
                                 if v not in temp_list:
                                     temp_list.append(v)
@@ -153,11 +159,11 @@ class Propagation:
         max_cf = 0 
 
         for u in self.G.nodes():
-            if self.G.node[u]["current_flow"] > max_cf:
-                max_cf = self.G.node[u]["current_flow"]
+            if self.G.nodes[u]["current_flow"] > max_cf:
+                max_cf = self.G.nodes[u]["current_flow"]
         for u in self.G.nodes(): 
             # Qui vengono normalizzati i flussi tra 0 e 1
-            val = (self.G.node[u]["current_flow"] - 1.e-7) / (max_cf - 1.e-7)
+            val = (self.G.nodes[u]["current_flow"] - 1.e-7) / (max_cf - 1.e-7)
             vect[int(u)] = val
             if vect[int(u)] < 1.e-7:
                 vect[int(u)] = 0
@@ -170,7 +176,7 @@ class Propagation:
         # Si tiene conto dei nodi invasi, così da resettarli all'inizio della nuova epoca
         node_to_restart = []
         for ep in range(0, self.prob_epoch):
-            self.G.node[root]['awash'] = True
+            self.G.nodes[root]['awash'] = True
             node_to_visit = queue.Queue()
             node_to_visit.put(root)
             while not node_to_visit.empty():
@@ -179,12 +185,12 @@ class Propagation:
                 max_prob = 0
                 id_max_prob = 0
                 for v in self.G.successors(current_node):
-                    if(not self.G.node[v]['awash']):
+                    if(not self.G.nodes[v]['awash']):
                         rand_value = random.uniform(0, 1)
                         if rand_value < self.G.edges[current_node, v]["trasmittance"]:
                             awashed += 1
-                            self.G.node[v]['awash'] = True
-                            self.G.node[v]['current_flow'] += 1
+                            self.G.nodes[v]['awash'] = True
+                            self.G.nodes[v]['current_flow'] += 1
                             node_to_restart.append(v)
                             node_to_visit.put(v)
                     if self.G.edges[current_node, v]["trasmittance"] > max_prob:
@@ -193,15 +199,15 @@ class Propagation:
 
                 if id_max_prob != 0:
                     if awashed == 0:
-                        if(not self.G.node[id_max_prob]['awash']):
+                        if(not self.G.nodes[id_max_prob]['awash']):
                             rand_value = random.uniform(0,1)
                             if rand_value < self.prob_second_chance:
-                                self.G.node[id_max_prob]['awash'] = True
+                                self.G.nodes[id_max_prob]['awash'] = True
                                 node_to_restart.append(id_max_prob)
-                                self.G.node[id_max_prob]['current_flow'] += 1
+                                self.G.nodes[id_max_prob]['current_flow'] += 1
                                 node_to_visit.put(v)
             for node in node_to_restart:
-                self.G.node[node]['awash'] = False
+                self.G.nodes[node]['awash'] = False
 
 
         # esporta l'output come vettore per poi ottenere la matrice sparsa
@@ -209,8 +215,8 @@ class Propagation:
         vect = np.zeros(len(self.G.nodes()))
 
         for u in self.G.nodes():
-            self.G.node[u]['current_flow'] = self.G.node[u]['current_flow'] / self.prob_epoch
-            vect[int(u)] = self.G.node[u]["current_flow"] / self.prob_epoch
+            self.G.nodes[u]['current_flow'] = self.G.nodes[u]['current_flow'] / self.prob_epoch
+            vect[int(u)] = self.G.nodes[u]["current_flow"] / self.prob_epoch
         
         # Esportazione in matrice sparsa
         sparse_matrix = self.export_sparse(vect, id_vent, "proberuption")
@@ -246,7 +252,7 @@ class Propagation:
     def export_sparse(self, vect, id_vent, propagation_method):
         M = np.zeros((91, 75), dtype=float)
         for u in self.G.nodes():
-            regions = self.G.node[u]["coord_regions"].split("|")
+            regions = self.G.nodes[u]["coord_regions"].split("|")
             for reg in regions:
                 reg_row, reg_col = conversion.cast_coord_attr(reg)
                 M[reg_row][reg_col] = vect[int(u)]

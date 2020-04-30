@@ -51,9 +51,9 @@ def write_in_csv(csv_filename, l_map):
                     print("Line ", line_count, " processed")
     print("CSV written")
 
-def load_graph():
-    if os.path.exists("graph_gexf/graphlow.gexf"):
-        G = nx.read_gexf("graph_gexf/graphlow.gexf")
+def load_graph(gexf_filename = "graphlow.gexf"):
+    if os.path.exists("graph_gexf/" + gexf_filename):
+        G = nx.read_gexf("graph_gexf/" + gexf_filename)
         return G
     else:
         print("Graph does not exists.")

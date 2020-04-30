@@ -109,14 +109,3 @@ def executeThread(i, sims, h_map, batch_size):
             y = np.int(c.split(" ")[1])
 
             h_map[x][y] += 1
-
-# --- Main ---
-'''t0 = time.time()
-l_map = create_linked_map()
-save_linked_map(l_map)
-t1 = time.time()
-total_time = t1 - t0
-print("Total time:",total_time)'''
-
-hmap = create_hmap()
-np.save('height_map.npy', hmap)

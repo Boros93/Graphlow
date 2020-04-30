@@ -198,7 +198,10 @@ def visualize_and_metrics(id_vent, propagation_method, sparse_matrix, header):
     return metric_list
 
 def test(id_vent):
-    utility.node_vent_csv()
-    
-
-    
+    p = Propagation()
+    G = utility.load_graph(gexf_filename="test_relu.gexf")
+    G_ = gm.normalize_prop_weight(G)
+    nx.write_gexf(G_, "test_relu.gexf")
+    p.set_Graph(G_)
+    sparse_matrix = p.trivector(id_vent)
+    visualize_and_metrics(id_vent, "trivector", sparse_matrix, False)

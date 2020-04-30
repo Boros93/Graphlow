@@ -221,4 +221,16 @@ def add_cities(G):
             # Controllo fatto perché la matrice di default ha valore 0
             if not names[coord_x][coord_y] == 0:
                 G.node[u]['city_names'] += str(names[coord_x][coord_y])
-    return G           
+    return G  
+
+def normalize_prop_weight(G):
+    for u in G.nodes():
+        sum_weight = 0
+        for v in G.successors(u):
+            u_v_weight = G.edges[u, v]["prop_weight"]
+            sum_weight += u_v_weight
+        if sum_weight > 0:
+            for v in G.successors(u):
+                new_prop = G.edges[u, v]["prop_weight"] / sum_weight
+                G.edges[u, v]["prop_weight"] =  new_prop
+    return G         
