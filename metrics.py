@@ -65,7 +65,7 @@ def compute(id_vent, propagation_method, sparse_matrix):
 
             maxes += max(M_real_c[row][col], M_graphlow[row][col])
 
-    #################### calcolo le metriche ########################  
+    #################### calcolo le metriche ########################
     precision = ppv(tp, fp)
     precision_c = tp_c / sum_graphlow
     tpr = tp_rate(tp, fn)
@@ -75,6 +75,7 @@ def compute(id_vent, propagation_method, sparse_matrix):
     hit_c = tp_c / maxes
     F1 = f1(precision,tpr)
     F1_c = f1(precision_c, tpr_c)
+    n_invaded_cities = count_invaded_cities(n_invaded_cities)
     #################################################################
 
     return [precision, precision_c, tpr, tpr_c, hit, hit_c, F1, F1_c]
@@ -109,3 +110,6 @@ def f1(precision, tpr):
     else:
         f1 = 0
     return f1
+
+def count_invaded_cities(n_invaded_cities):
+    return n_invaded_cities
