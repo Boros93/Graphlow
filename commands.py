@@ -146,7 +146,8 @@ def trivector_cmd(id_vent, threshold = -1, header = False):
     # Esecuzione algoritmo 
     sparse_matrix = propagation.trivector(id_vent)
     # Esportazione in ASCII e calcolo metriche
-    visualize_and_metrics(id_vent, "trivector", sparse_matrix, header)
+    G = propagation.get_Graph()
+    visualize_and_metrics(id_vent, "trivector", sparse_matrix, G, header)
 
 # Da sistemare lunedì
 def batch_trivector(*parameter_list):
@@ -170,7 +171,8 @@ def eruption_cmd(id_vent, volume = -1, n_days = -1, threshold = -1, header = Fal
     # Esecuzione algoritmo 
     sparse_matrix = propagation.eruption(id_vent)
     # Esportazione in ASCII e calcolo metriche
-    visualize_and_metrics(id_vent, "eruption", sparse_matrix, header)
+    G = propagation.get_Graph()
+    visualize_and_metrics(id_vent, "eruption", sparse_matrix, G, header)
 
 def montecarlo_cmd(id_vent, n_epochs = -1, second_chance = -1, header = False):
     if id_vent == 0:
@@ -181,14 +183,15 @@ def montecarlo_cmd(id_vent, n_epochs = -1, second_chance = -1, header = False):
     # Esecuzione algoritmo 
     sparse_matrix = propagation.trivector(id_vent)
     # Esportazione in ASCII e calcolo metriche
-    visualize_and_metrics(id_vent, "montecarlo", sparse_matrix, header)
+    G = propagation.get_Graph()
+    visualize_and_metrics(id_vent, "montecarlo", sparse_matrix, G, header)
 
 
-def visualize_and_metrics(id_vent, propagation_method, sparse_matrix, header):
+def visualize_and_metrics(id_vent, propagation_method, sparse_matrix, G, header):
     # Esportazione in ASCII Grid
     mc.ascii_creator(id_vent, propagation_method, sparse_matrix)
     # Calcolo delle metriche
-    metric_list = metrics.compute(id_vent, propagation_method, sparse_matrix)
+    metric_list = metrics.compute(id_vent, propagation_method, sparse_matrix, G)
     # Intabellamento
     # Scrittura header tabella
     if not header == True:  
@@ -198,10 +201,10 @@ def visualize_and_metrics(id_vent, propagation_method, sparse_matrix, header):
     return metric_list
 
 def test(id_vent):
-    p = Propagation()
+    """p = Propagation()
     G = utility.load_graph(gexf_filename="test_relu.gexf")
     G_ = gm.normalize_prop_weight(G)
     nx.write_gexf(G_, "test_relu.gexf")
     p.set_Graph(G_)
     sparse_matrix = p.trivector(id_vent)
-    visualize_and_metrics(id_vent, "trivector", sparse_matrix, False)
+    visualize_and_metrics(id_vent, "trivector", sparse_matrix, False)"""

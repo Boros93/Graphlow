@@ -96,9 +96,6 @@ class Propagation:
         for index in range(0, len(vect3)):
             value = float(vect3[index])
             self.G.nodes[str(index)]['current_flow'] = value
-            if self.G.nodes[str(index)]['is_city'] > 0 and value > 0:
-                n_invaded_cities += 1 
-        metrics.count_invaded_cities(n_invaded_cities)
         # Esportazione in matrice sparsa
         sparse_matrix = self.export_sparse(vect3, id_vent, "trivector")
         return sparse_matrix

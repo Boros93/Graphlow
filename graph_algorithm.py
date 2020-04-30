@@ -73,8 +73,8 @@ def sim_to_graph(G_original, not_n_filename):
             G.node[v]["current_flow"] = 1
     return G
 
-    for u, v in G.edges():
 def cut_edges(G, edges_list: list):
+    for u, v in G.edges():
         if [u,v] in edges_list:
             G.edges[u,v]["prop_weight"] = 0
 

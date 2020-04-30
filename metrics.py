@@ -2,13 +2,14 @@ import os
 import utility
 import map_creator as mc
 from scipy import sparse
+
 # Tabella della verità 
 #    | eruption | real  |
 # TP |     V    |   V   |
 # TN |     X    |   X   |
 # FP |     V    |   X   |
 # FN |     X    |   V   |
-def compute(id_vent, propagation_method, sparse_matrix):
+def compute(id_vent, propagation_method, sparse_matrix, G):
     M_graphlow = sparse_matrix.toarray()
     # Caricamento simulazioni MAGFLOW da confrontare
     # real[row][col] = 0 o 1
@@ -75,10 +76,10 @@ def compute(id_vent, propagation_method, sparse_matrix):
     hit_c = tp_c / maxes
     F1 = f1(precision,tpr)
     F1_c = f1(precision_c, tpr_c)
-    n_invaded_cities = count_invaded_cities(n_invaded_cities)
+    n_invaded_cities = count_invaded_cities(G)
     #################################################################
 
-    return [precision, precision_c, tpr, tpr_c, hit, hit_c, F1, F1_c]
+    return [precision, precision_c, tpr, tpr_c, hit, hit_c, F1, F1_c, n_invaded_cities]
 
 # precision = PPV = tp/(tp + fp)
 def ppv(tp, fp):
@@ -111,5 +112,9 @@ def f1(precision, tpr):
         f1 = 0
     return f1
 
-def count_invaded_cities(n_invaded_cities):
+def count_invaded_cities(G):
+    n_invaded_cities = 0
+    for u in G.nodes():
+        if G.nodes[u]['is_city'] > 0 and G.nodes[u]['current_flow'] > 0:
+            n_invaded_cities += 1
     return n_invaded_cities

@@ -1,6 +1,6 @@
 Data
 
-__pycache__/*
+__pycache__/*.pyc
 
 .vs/ProjectSettings.json
 
@@ -37,3 +37,5 @@ ASCII_grids/*
 nn/dataset/*
 
 CSVMaps/linked_map.csv
+
+*.pyc
