@@ -73,6 +73,11 @@ def sim_to_graph(G_original, not_n_filename):
             G.node[v]["current_flow"] = 1
     return G
 
+    for u, v in G.edges():
+def cut_edges(G, edges_list: list):
+        if [u,v] in edges_list:
+            G.edges[u,v]["prop_weight"] = 0
+
 '''def eruption(G, id_vent, volume, n_days, alpha, threshold):
     volume_per_day = int(volume/n_days)
     volume_remaining = volume
