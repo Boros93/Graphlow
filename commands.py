@@ -200,7 +200,7 @@ def visualize_and_metrics(id_vent, propagation_method, sparse_matrix, G, header)
     
     return metric_list
 
-def test(id_vent):
+def test():
     """p = Propagation()
     G = utility.load_graph(gexf_filename="test_relu.gexf")
     G_ = gm.normalize_prop_weight(G)
@@ -208,3 +208,13 @@ def test(id_vent):
     p.set_Graph(G_)
     sparse_matrix = p.trivector(id_vent)
     visualize_and_metrics(id_vent, "trivector", sparse_matrix, False)"""
+    p = Propagation()
+    # METTERE QUESTA ISTRUZIONE DI DEFAULT
+    p.set_weight("trasmittance")
+    G = p.get_Graph()
+    G = ga.cut_edges(G, [["978","917"]])
+    p.set_Graph(G)
+    sparse_matrix = p.trivector(2222)
+    G = p.get_Graph()
+    visualize_and_metrics("2222", "trivector", sparse_matrix, G, header=False)
+    p.export_graph("graph_cuted.gexf")

@@ -6,6 +6,7 @@ from scipy import sparse
 import math
 import random
 import metrics
+import networkx as nx
 
 class Propagation:
     def __init__(self):
@@ -38,7 +39,7 @@ class Propagation:
         support_queue = queue.Queue()
 
         #definisce la chiave da controllare 
-        key_to_control = "trasmittance" 
+        key_to_control = "prop_weight" 
 
         # Iniziamo mettendo i vicini della root nella coda esterna
         for v in self.G.successors(root):
@@ -262,6 +263,9 @@ class Propagation:
         # sparse.save_npz("sparse/M_" + propagation_method + "_" + id_vent + ".npz", sparse_M)
         return sparse_M
 
+    def export_graph(self, filename):
+        nx.write_gexf(self.G, "graph_gexf/" + filename)
+
     def set_trivector(self, tri_threshold):
         if not tri_threshold == -1:
             self.tri_threshold = float(tri_threshold)
@@ -280,9 +284,15 @@ class Propagation:
         if not prob_second_chance == -1:
             self.prob_second_chance = float(prob_second_chance)
 
+    def set_weight(self, key_to_control):
+        for u, v, data in self.G.edges(data=True):
+            self.G.edges[u,v]["prop_weight"] = self.G.edges[u,v][key_to_control]
+
     def set_Graph(self, G):
         self.G = G 
 
     def get_Graph(self):
         return self.G
+
+
 

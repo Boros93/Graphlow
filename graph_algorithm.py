@@ -77,6 +77,7 @@ def cut_edges(G, edges_list: list):
     for u, v in G.edges():
         if [u,v] in edges_list:
             G.edges[u,v]["prop_weight"] = 0
+    return G
 
 '''def eruption(G, id_vent, volume, n_days, alpha, threshold):
     volume_per_day = int(volume/n_days)
