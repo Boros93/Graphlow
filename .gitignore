@@ -35,3 +35,5 @@ sparse/*
 ASCII_grids/*
 
 nn/dataset/*
+
+CSVMaps/linked_map.csv
