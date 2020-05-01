@@ -81,24 +81,25 @@ def unify_sims(id_vent, char):
     simspath = "Data/simulations/"
     current_vent_files = glob("{}/NotN_vent_{}_*.txt".format(simspath, id_vent))
 
-    lines_to_write = []
+    flows = np.zeros((91, 75), dtype=float)
+
     for f in current_vent_files:
+        this_flow = np.zeros((91, 75), dtype=float)
         with open(f, 'r') as infile:
             for line in infile:
-                if not line in lines_to_write:
-                    lines_to_write.append(line)
+                row, col = line.split()
+                row = int(int(row)/25)
+                col = int(int(col)/25)
+                this_flow[row][col] = 1
 
-    flows = np.zeros((91, 75), dtype=float)
-    count = 0
-    for line in lines_to_write:  
-        row, col = line.split()
-        row = int(int(row)/25)
-        col = int(int(col)/25)
-        if char == 'c': # unione con output continuo tra 0 e 1
-            flows[row][col] += 1
-        else:           # unione con output discreto: 0 o 1
-            flows[row][col] = 1
-        count += 1
+        if char == 'c':
+            # add this_flow to flows: +1 for each flow
+            flows += this_flow
+        else:
+            # pick the maximum between this_flow and flows (1 if it was in _any_ flow)
+            flows = np.maximum(flows, this_flow)
+
+    # normalize
     if char == 'c':
         for r in range(0, flows.shape[0]):
             for c in range(0, flows.shape[1]):
