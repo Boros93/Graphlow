@@ -79,16 +79,11 @@ def graph_to_matrix(G):
 # genera una matrice sparsa che rappresenta l'unione delle simulazioni MAGFLOW della bocca specificata
 def unify_sims(id_vent, char):
     simspath = "Data/simulations/"
-    filelist = os.listdir(simspath)
-    current_vent_files = []
-    
-    for filename in filelist:
-        if int(id_vent) == conversion.id_from_not_n(filename) + 1:
-            current_vent_files.append(filename)
-            
+    current_vent_files = glob("{}/NotN_vent_{}_*.txt".format(simspath, id_vent))
+
     lines_to_write = []
     for f in current_vent_files:
-        with open(simspath + f, 'r') as infile:
+        with open(f, 'r') as infile:
             for line in infile:
                 if not line in lines_to_write:
                     lines_to_write.append(line)
