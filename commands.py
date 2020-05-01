@@ -42,8 +42,8 @@ def show_sim(id_vent = 0, real_class = 1):
     if real_class == "0":
         # Qui si unificano le simulazioni, si esportano come matrici sparse e si creano gli ASCII
         sparse_matrix_c, sparse_matrix_d = propagation.real(id_vent, real_class)
-        mc.ascii_creator(id_vent, "ucsim_", sparse_matrix_c)
-        mc.ascii_creator(id_vent, "udsim_", sparse_matrix_d)
+        mc.ascii_creator(id_vent, "ucsim", sparse_matrix_c)
+        mc.ascii_creator(id_vent, "udsim", sparse_matrix_d)
         return
     # Esecuzione simulazione
     sparse_matrix = propagation.real(id_vent, real_class)
