@@ -56,7 +56,7 @@ def show_sim(spec=None, real_class = 1):
         # a comma, optional whitespace, the radius (optionally) and the closing ) (obligatoy), if neib was specified
         match = re.match("(?:\s*,\s*)?(?:(?P<neib>moore|neumann)\()?(?P<id>\d+)(?(neib)(?:,\s*(?P<radius>\d+))?\))", spec)
         if not match:
-            raise ValueError("invalid vent spec '{}'".format(id_vent))
+            raise ValueError("invalid vent spec '{}'".format(spec))
         neib = match.group('neib')
         radius = int(match.group('radius') or 1)
         vent = int(match.group('id'))
