@@ -40,12 +40,17 @@ def show_sim(id_vent = 0, real_class = 1):
         return
     propagation = Propagation()
     if real_class == "0":
+        id_vents = id_vent.split(",")
+        id_vents.sort()
         # Qui si unificano le simulazioni, si esportano come matrici sparse e si creano gli ASCII
-        sparse_matrix_c, sparse_matrix_d = propagation.real(id_vent, real_class)
-        mc.ascii_creator(id_vent, "ucsim", sparse_matrix_c)
-        mc.ascii_creator(id_vent, "udsim", sparse_matrix_d)
+        sparse_matrix_c, sparse_matrix_d = propagation.real(id_vents, real_class)
+        ascii_vents = "_".join(id_vents)
+        mc.ascii_creator(ascii_vents, "ucsim", sparse_matrix_c)
+        mc.ascii_creator(ascii_vents, "udsim", sparse_matrix_d)
         return
     # Esecuzione simulazione
+    if "," in id_vent:
+        raise ValueError("multiple vents not support for class != 0")
     sparse_matrix = propagation.real(id_vent, real_class)
     # Esportazione in ASCII Grid
     mc.ascii_creator(id_vent, "real_" + real_class, sparse_matrix)
