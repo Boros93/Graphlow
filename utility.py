@@ -77,40 +77,53 @@ def graph_to_matrix(G):
     np.save("graph_matrix.npy", M)
 
 # genera una matrice sparsa che rappresenta l'unione delle simulazioni MAGFLOW della bocca specificata
-def unify_sims(id_vent, char):
+def unify_sims(id_vents, char):
     simspath = "Data/simulations/"
-    filelist = os.listdir(simspath)
-    current_vent_files = []
-    
-    for filename in filelist:
-        if int(id_vent) == conversion.id_from_not_n(filename) + 1:
-            current_vent_files.append(filename)
-            
-    lines_to_write = []
-    for f in current_vent_files:
-        with open(simspath + f, 'r') as infile:
-            for line in infile:
-                if not line in lines_to_write:
-                    lines_to_write.append(line)
 
-    flows = np.zeros((91, 75), dtype=float)
-    count = 0
-    for line in lines_to_write:  
-        row, col = line.split()
-        row = int(int(row)/25)
-        col = int(int(col)/25)
-        if char == 'c': # unione con output continuo tra 0 e 1
-            flows[row][col] += 1
-        else:           # unione con output discreto: 0 o 1
-            flows[row][col] = 1
-        count += 1
+    all_flows = np.zeros((91, 75), dtype=float)
+    all_norm = 0
+
+    for id_vent in id_vents:
+        current_vent_files = glob("{}/NotN_vent_{}_*.txt".format(simspath, id_vent))
+        all_norm += len(current_vent_files)
+
+        vent_flows = np.zeros((91, 75), dtype=float)
+
+        for f in current_vent_files:
+            this_flow = np.zeros((91, 75), dtype=float)
+            with open(f, 'r') as infile:
+                for line in infile:
+                    row, col = line.split()
+                    row = int(int(row)/25)
+                    col = int(int(col)/25)
+                    this_flow[row][col] = 1
+
+            if char == 'c':
+                # add this_flow to flows: +1 for each flow
+                vent_flows += this_flow
+                all_flows += this_flow
+            else:
+                # pick the maximum between this_flow and flows (1 if it was in _any_ flow)
+                vent_flows = np.maximum(vent_flows, this_flow)
+                all_flows = np.maximum(all_flows, this_flow)
+
+        # normalize
+        if char == 'c':
+            for r in range(0, vent_flows.shape[0]):
+                for c in range(0, vent_flows.shape[1]):
+                    if not vent_flows[r][c] == 0:
+                        vent_flows[r][c] = vent_flows[r][c] / 6
+        sparse_matrix = sparse.csr_matrix(vent_flows)
+        sparse.save_npz("sparse/sparse_sim_" + char + "_" + str(id_vent) + ".npz", sparse_matrix, compressed = True)
+
+    # normalize across all
     if char == 'c':
-        for r in range(0, flows.shape[0]):
-            for c in range(0, flows.shape[1]):
-                if not flows[r][c] == 0:
-                    flows[r][c] = flows[r][c] / 6
-    sparse_matrix = sparse.csr_matrix(flows)
-    sparse.save_npz("sparse/sparse_sim_" + char + "_" + str(id_vent) + ".npz", sparse_matrix, compressed = True)
+        for r in range(0, all_flows.shape[0]):
+            for c in range(0, all_flows.shape[1]):
+                if not all_flows[r][c] == 0:
+                    all_flows[r][c] = all_flows[r][c] / all_norm
+    sparse_matrix = sparse.csr_matrix(all_flows)
+
     return sparse_matrix
 
 def init_table(propagation_method):

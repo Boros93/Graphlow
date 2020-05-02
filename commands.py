@@ -13,6 +13,7 @@ import random
 from Propagation import Propagation
 import metrics
 import conversion
+import re
 
 # AGGIUNGERE I NUOVI COMANDI
 def man():
@@ -34,18 +35,62 @@ def man():
                                An eruption class is a combination of volume and duration of eruption. default 1
                                example of usage: showsim 2233 6
     """)
-def show_sim(id_vent = 0, real_class = 1):
-    if id_vent == 0:
-        print("WARNING! Insert an id_vent")
-        return
+
+def show_sim(spec=None, real_class = 1):
+    if spec is None:
+        raise ValueError("must specify an id_vent")
+
+    id_vents = set()
     propagation = Propagation()
+
+    # accept a comma-separated list of specifications
+    # each vent specification can be either a single vent, or a vent neighborhod specification
+    # moore(vent[,r]) specifies the Moore neighborhood of radius r
+    # neumann(vent[,r]) specifies the von Neumann neighborhood of radius r
+    # default value for r is 1
+    while spec:
+        # match groups:
+        # an optional initial comma, with surrounding space
+        # moore( or neumann(, storing moore or neumann in the neib group
+        # digitis (vent id)
+        # a comma, optional whitespace, the radius (optionally) and the closing ) (obligatoy), if neib was specified
+        match = re.match("(?:\s*,\s*)?(?:(?P<neib>moore|neumann)\()?(?P<id>\d+)(?(neib)(?:,\s*(?P<radius>\d+))?\))", spec)
+        if not match:
+            raise ValueError("invalid vent spec '{}'".format(id_vent))
+        neib = match.group('neib')
+        radius = int(match.group('radius') or 1)
+        vent = int(match.group('id'))
+        # TODO FIXME neighbor computations aren't valid at the edge of the vent grid
+        if neib is None:
+            id_vents.add(vent)
+        elif neib == 'moore':
+            for r in range(-radius, radius+1):
+                for c in range(-radius, radius+1):
+                    id_vents.add(vent + r*72 + c)
+        elif neib == 'neumann':
+            for r in range(-radius, radius+1):
+                for c in range(-radius, radius+1):
+                    if abs(r)+abs(c) <= radius:
+                        id_vents.add(vent + r*72 + c)
+        # match next
+        spec = spec[match.end():]
+
+    id_vents = [ str(v) for v in id_vents ]
+    id_vents.sort()
+    print(id_vents)
+
     if real_class == "0":
         # Qui si unificano le simulazioni, si esportano come matrici sparse e si creano gli ASCII
-        sparse_matrix_c, sparse_matrix_d = propagation.real(id_vent, real_class)
-        mc.ascii_creator(id_vent, "ucsim_", sparse_matrix_c)
-        mc.ascii_creator(id_vent, "udsim_", sparse_matrix_d)
+        sparse_matrix_c, sparse_matrix_d = propagation.real(id_vents, real_class)
+        ascii_vents = "_".join(id_vents)
+        mc.ascii_creator(ascii_vents, "ucsim", sparse_matrix_c)
+        mc.ascii_creator(ascii_vents, "udsim", sparse_matrix_d)
         return
-    # Esecuzione simulazione
+
+    # Esecuzione simulazione --single vent only
+    if len(id_vents) != 1:
+        raise ValueError("multiple vents not support for class != 0")
+    id_vent = id_vents[0]
     sparse_matrix = propagation.real(id_vent, real_class)
     # Esportazione in ASCII Grid
     mc.ascii_creator(id_vent, "real_" + real_class, sparse_matrix)

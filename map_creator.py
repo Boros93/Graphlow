@@ -20,7 +20,8 @@ COLS_DEM = 1875
 
 header = ["north: " + str(NORTH), "south: " + str(SOUTH),
             "east: " + str(EAST), "west: " + str(WEST), 
-            "rows: " + str(ROWS), "cols: " + str(COLS)]
+            "rows: " + str(ROWS), "cols: " + str(COLS),
+            "null: 0"]
 destination_path = "ASCII_grids/"
 
 def graph_to_UTM(G, filename):
