@@ -66,12 +66,12 @@ def show_sim(spec=None, real_class = 1):
         elif neib == 'moore':
             for r in range(-radius, radius+1):
                 for c in range(-radius, radius+1):
-                    id_vents.add(vent + r*72 + c)
+                    id_vents.add(vent + r*73 + c)
         elif neib == 'neumann':
             for r in range(-radius, radius+1):
                 for c in range(-radius, radius+1):
                     if abs(r)+abs(c) <= radius:
-                        id_vents.add(vent + r*72 + c)
+                        id_vents.add(vent + r*73 + c)
         # match next
         spec = spec[match.end():]
 
