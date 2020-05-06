@@ -83,6 +83,9 @@ def unify_sims(id_vents, char):
     all_flows = np.zeros((91, 75), dtype=float)
     all_norm = 0
 
+    if isinstance(id_vents, str):
+        id_vents = [id_vents]
+
     for id_vent in id_vents:
         current_vent_files = glob("{}/NotN_vent_{}_*.txt".format(simspath, id_vent))
         all_norm += len(current_vent_files)

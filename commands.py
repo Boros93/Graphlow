@@ -245,11 +245,11 @@ def visualize_and_metrics(id_vent, propagation_method, sparse_matrix, G, header)
     
     return metric_list
 
-def test(id_vent):
+def test(id_vent, dimension=5, distance=2, mode='iterative', measure='trasmittance'):
     p = Propagation()
     p.trivector(id_vent)
     G = p.get_Graph()
-    list_edges = ga.get_edges_to_cut(G, id_vent)
+    list_edges = ga.get_edges_to_cut(G, id_vent, dimension, distance, mode, measure)
 
     p.set_Graph(load_graph())
     p.cut_edges(list_edges)

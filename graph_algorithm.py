@@ -85,10 +85,15 @@ def cut_edges(G, edges_list: list):
 # vent_id: Bocca della simulazione
 # dimension: Numero di archi da tagliare
 # distance: Tutti gli archi a distanza < distance dalla bocca non verranno tagliati
-# iterative: Modalità di taglio
+# mode: Modalità di taglio [iterative/batch]
 # measure: Misura da utilizzare [trasmittance/weight] weight:ogni arco ha peso 1
 
-def get_edges_to_cut(G, id_vent, dimension=5, distance=2, iterative=True, measure='trasmittance'):
+def get_edges_to_cut(G, id_vent, dimension=5, distance=2, mode='iterative', measure='trasmittance'):
+
+    dimension = int(dimension)
+    distance = int(distance)
+    mode = str(mode)
+    measure = str(measure)
 
     # Conversione vent
     vent_id = conversion.get_node_from_idvent(int(id_vent))
@@ -116,7 +121,7 @@ def get_edges_to_cut(G, id_vent, dimension=5, distance=2, iterative=True, measur
             city_nodes.append(n)
     
     edges_to_cut = []
-    if iterative:
+    if mode == 'iterative':
         for _ in range(dimension):
             # Calcolo delle efficienze
             efficiency = {}
@@ -144,7 +149,7 @@ def get_edges_to_cut(G, id_vent, dimension=5, distance=2, iterative=True, measur
             G.edges[m[0], m[1]][measure] = math.inf
 
         return edges_to_cut
-    else:
+    if mode == 'batch':
         # Calcolo delle efficienze
         efficiency = {}
         for n in city_nodes:
