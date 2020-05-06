@@ -6,6 +6,8 @@ from scipy import sparse
 import numpy as np
 import conversion
 import map_creator as mc
+import networkx as nx 
+
 def set_node_rank(G, not_n_filename):
     # inserisco nella lista il nodo per poter azzerarne il rango alla fine.
     not_n_nodes = []
@@ -78,6 +80,98 @@ def cut_edges(G, edges_list: list):
         if [u,v] in edges_list:
             G.edges[u,v]["prop_weight"] = 0
     return G
+
+# G: Grafo dopo la simulazione
+# vent_id: Bocca della simulazione
+# dimension: Numero di archi da tagliare
+# distance: Tutti gli archi a distanza < distance dalla bocca non verranno tagliati
+# iterative: Modalità di taglio
+# measure: Misura da utilizzare [trasmittance/weight] weight:ogni arco ha peso 1
+
+def get_edges_to_cut(G, id_vent, dimension=5, distance=2, iterative=True, measure='trasmittance'):
+
+    # Conversione vent
+    vent_id = conversion.get_node_from_idvent(int(id_vent))
+
+    # Estrazione sottografo
+    for i in range(len(G.nodes)):
+        if G.nodes[str(i)]['current_flow'] == 0:
+            G.remove_node(str(i))
+
+    # Cambio pesi
+    if measure == "trasmittance":
+        for u, v, data in G.edges(data=True):
+            if data['trasmittance'] == 0:
+                G.edges[u, v]['trasmittance'] = math.inf
+            else:
+                G.edges[u, v]['trasmittance'] = -math.log(data['trasmittance'])
+    else:
+        for u, v, data in G.edges(data=True):
+            G.edges[u, v]['weight'] = 1
+
+    # Lista nodi città
+    city_nodes = []
+    for n in G.nodes:
+        if G.nodes[n]['is_city'] > 0:
+            city_nodes.append(n)
+    
+    edges_to_cut = []
+    if iterative:
+        for _ in range(dimension):
+            # Calcolo delle efficienze
+            efficiency = {}
+            for n in city_nodes:
+                efficiency[n] = [nx.shortest_path_length(G, vent_id, n, weight=measure), nx.shortest_path(G, vent_id, n, weight=measure)]
+            
+            # Conteggio archi
+            edges = {}
+            for key in efficiency:
+                # Scorro i paths
+                path = efficiency[key][1]
+                for i in range(distance, len(path)):
+                    edge_id = (path[i-1], path[i])
+                    # Se esiste la chiave la incremento altrimenti
+                    # la aggiungo al dizionario
+                    if edge_id in edges:
+                        edges[edge_id] += 1
+                    else:
+                        edges[edge_id] = 1
+            
+            # Prendo l'arco con più occorrenze
+            m = max(edges, key=edges.get)
+            edges_to_cut.append([m[0], m[1]])
+            # Aggiorno il peso
+            G.edges[m[0], m[1]][measure] = math.inf
+
+        return edges_to_cut
+    else:
+        # Calcolo delle efficienze
+        efficiency = {}
+        for n in city_nodes:
+            efficiency[n] = [nx.shortest_path_length(G, vent_id, n, weight=measure), nx.shortest_path(G, vent_id, n, weight=measure)]
+        
+        # Conteggio archi
+        edges = {}
+        for key in efficiency:
+            # Scorro i paths
+            path = efficiency[key][1]
+            for i in range(distance, len(path)):
+                edge_id = (path[i-1], path[i])
+                # Se esiste la chiave la incremento altrimenti
+                # la aggiungo al dizionario
+                if edge_id in edges:
+                    edges[edge_id] += 1
+                else:
+                    edges[edge_id] = 1
+        
+        for i in range(dimension):
+            # Prendo l'arco con più occorrenze
+            m = max(edges, key=edges.get)
+            edges_to_cut.append([m[0], m[1]])
+            # Elimino l'arco dal dizionario
+            del(edges[m])
+
+        return edges_to_cut
 
 '''def eruption(G, id_vent, volume, n_days, alpha, threshold):
     volume_per_day = int(volume/n_days)

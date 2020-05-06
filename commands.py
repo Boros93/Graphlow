@@ -245,20 +245,19 @@ def visualize_and_metrics(id_vent, propagation_method, sparse_matrix, G, header)
     
     return metric_list
 
-def test():
+def test(id_vent):
     p = Propagation()
-    # list_edges = [['2042','2133'], ['1954','2042'], ['2227','2322'], ['2133','2227']]
-    # list_edges = [['1953','2042'], ['2042','2133'], ['2133','2226'], ['2226','2320'], ['2320','2416']]
-    list_edges = [['2042', '2133'], ['2044', '2134'], ['2043','2134'], ['2045', '2137'], ['2042','2134']]
-    p.cut_edges(list_edges)
-    
-    # Esportazione in ASCII e calcolo metriche
+    p.trivector(id_vent)
     G = p.get_Graph()
-    # G = gm.normalize_trasmittance(G)
-    p.set_weight("trasmittance")
-    sparse_matrix = p.trivector("2233")
-    p.export_graph("2233.gexf")
-    visualize_and_metrics("2233", "trivector", sparse_matrix, G, False)
+    list_edges = ga.get_edges_to_cut(G, id_vent)
+
+    p.set_Graph(load_graph())
+    p.cut_edges(list_edges)
+    G = p.get_Graph()
+
+    sparse_matrix = p.trivector(id_vent)
+    visualize_and_metrics(str(id_vent), "trivector", sparse_matrix, G, False)
+    mc.ascii_barrier(id_vent, "trivector", list_edges)
 
 def cut_edges(id_vent, *list_edges):
     edges_to_cut = []
