@@ -294,5 +294,13 @@ class Propagation:
     def get_Graph(self):
         return self.G
 
+    def cut_edges(self, edges_list: list):
+        for u, v in self.G.edges():
+            if [u,v] in edges_list:
+                self.G.edges[u,v]["prop_weight"] = 0
+                self.G.edges[u,v]["trasmittance"] = 0
+                self.G.edges[u,v]["transmit_rank"] = 0
+
+
 
 

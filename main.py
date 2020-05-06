@@ -10,6 +10,8 @@ def switch_command(cmd):
         commands.montecarlo_cmd(*cmd[1:])
     elif cmd[0] == "showsim":
         commands.show_sim(*cmd[1:])
+    elif cmd[0] == "cut":
+        commands.cut_edges(*cmd[1:])
     elif cmd[0] == "man":
         commands.man()
     elif cmd[0] == "exit":

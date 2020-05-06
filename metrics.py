@@ -76,10 +76,10 @@ def compute(id_vent, propagation_method, sparse_matrix, G):
     hit_c = tp_c / maxes
     F1 = f1(precision,tpr)
     F1_c = f1(precision_c, tpr_c)
-    n_invaded_cities = count_invaded_cities(G)
+    n_invaded_cities, risk = count_invaded_cities(G)
     #################################################################
 
-    return [precision, precision_c, tpr, tpr_c, hit, hit_c, F1, F1_c, n_invaded_cities]
+    return [precision, precision_c, tpr, tpr_c, hit, hit_c, F1, F1_c, n_invaded_cities, risk]
 
 # precision = PPV = tp/(tp + fp)
 def ppv(tp, fp):
@@ -112,9 +112,11 @@ def f1(precision, tpr):
         f1 = 0
     return f1
 
-def count_invaded_cities(G):
+def count_invaded_cities(G): 
     n_invaded_cities = 0
+    risk = 0
     for u in G.nodes():
         if G.nodes[u]['is_city'] > 0 and G.nodes[u]['current_flow'] > 0:
             n_invaded_cities += 1
-    return n_invaded_cities
+            risk += G.nodes[u]['current_flow'] * G.nodes[u]['is_city']
+    return n_invaded_cities, risk

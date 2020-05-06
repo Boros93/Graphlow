@@ -57,7 +57,33 @@ def ascii_creator(id_vent, propagation_method, sparse_matrix):
                 else:
                     utmfile.write(str(M[x][y]) + " ")
             utmfile.write("\n")
-    
+# Metodo che crea il file ascii delle barriere
+def ascii_barrier(id_vent, propagation_method, edges_list):
+    utm_filename = "ASCII_grids/" +  propagation_method + "_" + str(id_vent) + "_barrier.txt"
+    # Creazione Matrice da stampare
+    M = np.zeros((ROWS, COLS), dtype=int)
+    G = utility.load_graph()
+    for u,v in edges_list:
+        coords = G.nodes[u]["coord_regions"].split("|")[0]
+        coord_u_x, coord_u_y = conversion.cast_coord_attr(coords)
+        M[coord_u_x][coord_u_y] = 1
+        coords = G.nodes[v]["coord_regions"].split("|")[0]
+        coord_v_x, coord_v_y = conversion.cast_coord_attr(coords)
+        M[coord_v_x][coord_v_y] = 1
+    # Scrittura del file
+    with open(utm_filename, 'w') as utmfile:
+        # Scrittura dell'header del file (northing...)
+        for i in range(0, len(header)):
+            utmfile.write(header[i] + "\n")
+        # Scrittura valori nel DEM
+        for x in range(0, ROWS):
+            for y in range(0, COLS):
+                if M[x][y] == 0:
+                    utmfile.write("0" + " ")
+                else:
+                    utmfile.write(str(M[x][y]) + " ")
+            utmfile.write("\n")
+                        
 # legge il file paesi-etnei.gml e ritorna una matrice nelle cui celle vi è 
 # 1 se quella rappresenta un paese/città, zero altrimenti.
 # inoltre ritorna una matrice di nomi delle città: 

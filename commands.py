@@ -56,7 +56,7 @@ def show_sim(spec=None, real_class = 1):
         # a comma, optional whitespace, the radius (optionally) and the closing ) (obligatoy), if neib was specified
         match = re.match("(?:\s*,\s*)?(?:(?P<neib>moore|neumann)\()?(?P<id>\d+)(?(neib)(?:,\s*(?P<radius>\d+))?\))", spec)
         if not match:
-            raise ValueError("invalid vent spec '{}'".format(id_vent))
+            raise ValueError("invalid vent spec '{}'".format(id_vents))
         neib = match.group('neib')
         radius = int(match.group('radius') or 1)
         vent = int(match.group('id'))
@@ -246,20 +246,31 @@ def visualize_and_metrics(id_vent, propagation_method, sparse_matrix, G, header)
     return metric_list
 
 def test():
-    """p = Propagation()
-    G = utility.load_graph(gexf_filename="test_relu.gexf")
-    G_ = gm.normalize_prop_weight(G)
-    nx.write_gexf(G_, "test_relu.gexf")
-    p.set_Graph(G_)
-    sparse_matrix = p.trivector(id_vent)
-    visualize_and_metrics(id_vent, "trivector", sparse_matrix, False)"""
     p = Propagation()
-    # METTERE QUESTA ISTRUZIONE DI DEFAULT
+    # list_edges = [['2042','2133'], ['1954','2042'], ['2227','2322'], ['2133','2227']]
+    # list_edges = [['1953','2042'], ['2042','2133'], ['2133','2226'], ['2226','2320'], ['2320','2416']]
+    list_edges = [['2042', '2133'], ['2044', '2134'], ['2043','2134'], ['2045', '2137'], ['2042','2134']]
+    p.cut_edges(list_edges)
+    
+    # Esportazione in ASCII e calcolo metriche
+    G = p.get_Graph()
+    # G = gm.normalize_trasmittance(G)
     p.set_weight("trasmittance")
+    sparse_matrix = p.trivector("2233")
+    p.export_graph("2233.gexf")
+    visualize_and_metrics("2233", "trivector", sparse_matrix, G, False)
+
+def cut_edges(id_vent, *list_edges):
+    edges_to_cut = []
+    for edges in list_edges:
+        edges_to_cut.append(edges.split(','))
+    p = Propagation()
+    p.cut_edges(edges_to_cut)
+    # Esportazione in ASCII e calcolo metriche
     G = p.get_Graph()
-    G = ga.cut_edges(G, [["978","917"]])
-    p.set_Graph(G)
-    sparse_matrix = p.trivector(2222)
-    G = p.get_Graph()
-    visualize_and_metrics("2222", "trivector", sparse_matrix, G, header=False)
-    p.export_graph("graph_cuted.gexf")
+    p.set_weight("trasmittance")
+    sparse_matrix = p.trivector(id_vent)
+    visualize_and_metrics(id_vent, "trivector", sparse_matrix, G, False)
+    mc.ascii_barrier(id_vent, "trivector", edges_to_cut)
+
+

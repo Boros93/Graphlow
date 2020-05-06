@@ -128,7 +128,7 @@ def unify_sims(id_vents, char):
 
 def init_table(propagation_method):
     print("\n\n                                  " + propagation_method)
-    metric_name_list = ["VENT  ", " PPV   ", " PPVC  ", " TPR   ", " TPRC  ", " HIT   ", " HITC  ", " F1    ", " F1C   ", " CITY  "]
+    metric_name_list = ["VENT  ", " PPV   ", " PPVC  ", " TPR   ", " TPRC  ", " HIT   ", " HITC  ", " F1    ", " F1C   ", " CITY  ", " RISK  "]
     for metric in metric_name_list:
         print("| " + metric, end = " ")
     print("|")
