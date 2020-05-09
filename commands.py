@@ -251,8 +251,54 @@ def visualize_and_metrics(id_vents: list, propagation_method, sparse_matrix, G, 
     
     return metric_list
 
-def test():
-    return
+import math
+def test(id_vent, distance = 4):
+    propagation = Propagation()
+    propagation.trivector([id_vent])
+    G = propagation.get_Graph()
+
+    # Conversione vent
+    id_node = conversion.get_node_from_idvent(int(id_vent))
+
+    # Estrazione sottografo
+    for i in range(len(G.nodes)):
+        if G.nodes[str(i)]['current_flow'] == 0:
+            G.remove_node(str(i))
+
+    # Cambio pesi
+    for u, v, data in G.edges(data=True):
+        if data['trasmittance'] == 0:
+            G.edges[u, v]['trasmittance'] = math.inf
+        else:
+            G.edges[u, v]['trasmittance'] = -math.log(data['trasmittance'])
+
+    # Lista nodi città
+    city_nodes = []
+    for n in G.nodes:
+        if G.nodes[n]['is_city'] > 0:
+            city_nodes.append(n)
+
+    # Shortest paths
+    shortest_paths = {}
+    for n in city_nodes:
+        shortest_paths[n] = nx.shortest_path(G, id_node, n, weight='trasmittance')
+    
+    cutted_edges = {}
+    for n in shortest_paths:
+        path = shortest_paths[n]
+        for i in range(distance, len(path)-distance):
+            edge_id = (path[i-1], path[i])
+            if edge_id not in cutted_edges:
+                propagation.set_Graph(load_graph())
+                propagation.cut_edges([[path[i-1], path[i]]])
+                sparse_matrix = propagation.trivector([id_vent])
+                G = propagation.get_Graph()
+                risk = metrics.compute([id_vent], 'trivector', sparse_matrix, G)[-1]
+                cutted_edges[edge_id] = risk
+                print(edge_id, risk)
+
+    min_risk = min(cutted_edges, key=cutted_edges.get)
+    print(min_risk)
 
 # taglia un numero di archi (specificato dall'utente) dal 
 # grafo a una distanza minima specificata dalla bocca
