@@ -25,15 +25,19 @@ class Propagation:
 
         self.G = utility.load_graph()
 
-    def trivector(self, id_vent):
-        root = conversion.get_node_from_idvent(int(id_vent))
+    def trivector(self, id_vents: list):
+        roots = []
+        for id_vent in id_vents:    
+            roots.append(conversion.get_node_from_idvent(int(id_vent)))
+        
         # Inizializzazione dei tre vettori temporali
         vect1 = np.zeros(len(self.G.nodes()))
         vect2 = np.zeros(len(self.G.nodes()))
         vect3 = np.zeros(len(self.G.nodes()))
         # Inizializzazione della root
-        vect2[int(root)] = 1
-        vect3[int(root)] = 1
+        for root in roots:
+            vect2[int(root)] = 1/len(roots)
+            vect3[int(root)] = 1/len(roots)
         # Creazione di due code, la prima per il ciclo interno e la seconda per quello esterno
         node_to_visit = queue.Queue()
         support_queue = queue.Queue()
@@ -42,8 +46,9 @@ class Propagation:
         key_to_control = "prop_weight" 
 
         # Iniziamo mettendo i vicini della root nella coda esterna
-        for v in self.G.successors(root):
-            support_queue.put(v)
+        for root in roots:
+            for v in self.G.successors(root):
+                support_queue.put(v)
         
         # Inizio ciclo esterno, cicla fin quando non abbiamo più nodi da esplorare
         while not support_queue.empty():
@@ -97,11 +102,10 @@ class Propagation:
         for index in range(0, len(vect3)):
             value = float(vect3[index])
             self.G.nodes[str(index)]['current_flow'] = value
-        # Esportazione in matrice sparsa
-        sparse_matrix = self.export_sparse(vect3, id_vent, "trivector")
-        return sparse_matrix
+        return self.create_sparse(vect3)
 
-    def eruption(self, id_vent):
+    def eruption(self, id_vents: list):
+        id_vent = id_vents[0]
         alpha = 1/8
         # Suddivisione del volume nei giorni 
         volume_per_day = int(self.eru_volume/self.eru_n_days)
@@ -173,7 +177,8 @@ class Propagation:
         sparse_matrix = self.export_sparse(vect, id_vent, "eruption")
         return sparse_matrix
 
-    def montecarlo(self, id_vent):
+    def montecarlo(self, id_vents: list):
+        id_vent = id_vents[0]
         root = conversion.get_node_from_idvent(int(id_vent))
         # Si tiene conto dei nodi invasi, così da resettarli all'inizio della nuova epoca
         node_to_restart = []
@@ -224,13 +229,14 @@ class Propagation:
         sparse_matrix = self.export_sparse(vect, id_vent, "proberuption")
         return sparse_matrix
 
-    def real(self, id_vent, real_class):
+    def real(self, id_vents: list, real_class):
         if not real_class == "0":
-            filename = "Data/simulations/NotN_vent_" + str(id_vent) + "_" + str(real_class) + ".txt"
+            filename = "Data/simulations/NotN_vent_" + str(id_vents[0]) + "_" + str(real_class) + ".txt"
         else:
-            sparse_M_c = utility.unify_sims(id_vent, "c")
-            sparse_M_d = utility.unify_sims(id_vent, "d")
+            sparse_M_c = utility.unify_sims(id_vents, "c")
+            sparse_M_d = utility.unify_sims(id_vents, "d")
             return sparse_M_c, sparse_M_d
+        
         # Lettura file
         with open(filename) as file:
             lines = file.readlines()
@@ -247,11 +253,10 @@ class Propagation:
             col = int(int(coord[1])/25)
             M[row][col] = 1
 
-        # Trasformazione in matrice sparsa
-        sparse_M = sparse.csr_matrix(M)
-        return sparse_M
+        # Trasformazione in matrice sparse
+        return sparse.csr_matrix(M)
 
-    def export_sparse(self, vect, id_vent, propagation_method):
+    def create_sparse(self, vect):
         M = np.zeros((91, 75), dtype=float)
         for u in self.G.nodes():
             regions = self.G.nodes[u]["coord_regions"].split("|")
@@ -259,8 +264,6 @@ class Propagation:
                 reg_row, reg_col = conversion.cast_coord_attr(reg)
                 M[reg_row][reg_col] = vect[int(u)]
         sparse_M = sparse.csr_matrix(M)
-        # Decommentare se serve esportare in un file la matrice sparsa
-        # sparse.save_npz("sparse/M_" + propagation_method + "_" + id_vent + ".npz", sparse_M)
         return sparse_M
 
     def export_graph(self, filename):

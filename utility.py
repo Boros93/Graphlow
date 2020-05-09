@@ -77,14 +77,11 @@ def graph_to_matrix(G):
     np.save("graph_matrix.npy", M)
 
 # genera una matrice sparsa che rappresenta l'unione delle simulazioni MAGFLOW della bocca specificata
-def unify_sims(id_vents, char):
+def unify_sims(id_vents: list, char, propagation_method):
     simspath = "Data/simulations/"
 
     all_flows = np.zeros((91, 75), dtype=float)
     all_norm = 0
-
-    if isinstance(id_vents, str):
-        id_vents = [id_vents]
 
     for id_vent in id_vents:
         current_vent_files = glob("{}/NotN_vent_{}_*.txt".format(simspath, id_vent))
@@ -117,7 +114,7 @@ def unify_sims(id_vents, char):
                     if not vent_flows[r][c] == 0:
                         vent_flows[r][c] = vent_flows[r][c] / 6
         sparse_matrix = sparse.csr_matrix(vent_flows)
-        sparse.save_npz("sparse/sparse_sim_" + char + "_" + str(id_vent) + ".npz", sparse_matrix, compressed = True)
+        # sparse.save_npz("sparse/sparse_sim_" + char + "_" + str(id_vent) + ".npz", sparse_matrix, compressed = True)
 
     # normalize across all
     if char == 'c':
@@ -126,7 +123,7 @@ def unify_sims(id_vents, char):
                 if not all_flows[r][c] == 0:
                     all_flows[r][c] = all_flows[r][c] / all_norm
     sparse_matrix = sparse.csr_matrix(all_flows)
-
+    sparse.save_npz("sparse/sparse_sim_" + char + "_" + propagation_method + "_" + str(id_vents[0]) + ".npz", sparse_matrix)
     return sparse_matrix
 
 def init_table(propagation_method):
@@ -137,6 +134,7 @@ def init_table(propagation_method):
     print("|")
 
 def create_row_table(metric_list, vent):
+    vent = str(vent)
     print("| " + vent.ljust(7, " "), end="")
     for metric in metric_list:
         metric = format(metric, ".1e")
@@ -164,3 +162,22 @@ def node_vent_csv():
             if count > 2:
                 return
             count += 1
+
+# calcolo del vicinato di moore o di neumann
+def get_neighborhood(id_vent, neighbor_method, radius):
+    radius = int(radius)
+    id_vent = int(id_vent)
+    id_vents = [id_vent]
+    if neighbor_method == 'moore':
+        for r in range(-radius, radius+1):
+            for c in range(-radius, radius+1):
+                if r != 0 and c !=0:
+                    id_vents.append(id_vent + r*73 + c)
+    else:
+        for r in range(-radius, radius+1):
+            for c in range(-radius, radius+1):
+                if abs(r)+abs(c) <= radius:
+                    if r != 0 and c !=0:
+                        id_vents.append(id_vent + r*73 + c)
+
+    return id_vents

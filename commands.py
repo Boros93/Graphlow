@@ -89,7 +89,7 @@ def show_sim(spec=None, real_class = 1):
 
     # Esecuzione simulazione --single vent only
     if len(id_vents) != 1:
-        raise ValueError("multiple vents not support for class != 0")
+        raise ValueError("multiple vents not supported for class != 0")
     id_vent = id_vents[0]
     sparse_matrix = propagation.real(id_vent, real_class)
     # Esportazione in ASCII Grid
@@ -182,29 +182,28 @@ def choose_setting():
 
     return setting_list
 
-def trivector_cmd(id_vent, threshold = -1, header = False):
-    if id_vent == 0:
-        return
+
+def trivector_cmd(id_vent: str, neighbor_method = None, radius = 1, threshold = -1, header = False):
     propagation = Propagation()
     # Setta i parametri
     propagation.set_trivector(threshold)
+    id_vents = []
+    propagation_method = "trivector"
+    if neighbor_method != None:
+        if neighbor_method == "moore" or neighbor_method == "neumann":
+            id_vents = utility.get_neighborhood(id_vent, neighbor_method, radius)
+            propagation_method += neighbor_method + str(radius)
+        else:
+            print("You must specify a valid neighbor method: moore / neumann.")
+            return None
+    else:
+        id_vents = [id_vent]
+    
     # Esecuzione algoritmo 
-    sparse_matrix = propagation.trivector(id_vent)
+    sparse_matrix = propagation.trivector(id_vents)
     # Esportazione in ASCII e calcolo metriche
     G = propagation.get_Graph()
-    visualize_and_metrics(id_vent, "trivector", sparse_matrix, G, header)
-
-# Da sistemare lunedì
-def batch_trivector(*parameter_list):
-    # Primo parametro corrisponde al fatto che il metodo sia random o scelto dall'utente
-    vent_list, setting = [], []
-    if parameter_list[0] == '-r':
-        vent_list = random_vent() 
-    elif parameter_list[0] == '-c':
-        vent_list = select_vent()
-    else:
-        print(parameter_list[0], "non esiste come opzione. Selezionare -r o -c")
-
+    visualize_and_metrics(id_vents, propagation_method, sparse_matrix, G, header)
 
 
 def eruption_cmd(id_vent, volume = -1, n_days = -1, threshold = -1, header = False):
@@ -232,20 +231,20 @@ def montecarlo_cmd(id_vent, n_epochs = -1, second_chance = -1, header = False):
     visualize_and_metrics(id_vent, "montecarlo", sparse_matrix, G, header)
 
 
-def visualize_and_metrics(id_vent, propagation_method, sparse_matrix, G, header):
+def visualize_and_metrics(id_vents, propagation_method, sparse_matrix, G, header):
     # Esportazione in ASCII Grid
-    mc.ascii_creator(id_vent, propagation_method, sparse_matrix)
+    mc.ascii_creator(id_vents, propagation_method, sparse_matrix)
     # Calcolo delle metriche
-    metric_list = metrics.compute(id_vent, propagation_method, sparse_matrix, G)
+    metric_list = metrics.compute(id_vents, propagation_method, sparse_matrix, G)
     # Intabellamento
     # Scrittura header tabella
     if not header == True:  
         utility.init_table(propagation_method)
-    utility.create_row_table(metric_list, id_vent)
+    utility.create_row_table(metric_list, id_vents[0])
     
     return metric_list
 
-def test(id_vent, dimension=5, distance=2, mode='iterative', measure='trasmittance'):
+def test(id_vent, distance=4, dimension=2, mode='iterative', measure='trasmittance'):
     p = Propagation()
     p.trivector(id_vent)
     G = p.get_Graph()

@@ -42,8 +42,11 @@ def graph_to_UTM(G, filename):
             utmfile.write("\n")
 
 # Metodo che crea il file ascii data una matrice sparsa
-def ascii_creator(id_vent, propagation_method, sparse_matrix):
-    utm_filename = "ASCII_grids/" + propagation_method + "_" + str(id_vent) + ".txt"
+def ascii_creator(id_vents: list, propagation_method, sparse_matrix):
+    # se id_vents è una stringa non si considera nessun vicinato
+    # esempio file: ASCII_grids/moore1_2233.npz
+    utm_filename = "ASCII_grids/" + propagation_method + "_" + str(id_vents[0]) + ".txt"
+
     M = sparse_matrix.toarray() 
     with open(utm_filename, 'w') as utmfile:
         # Scrittura dell'header del file (northing...)
@@ -57,6 +60,7 @@ def ascii_creator(id_vent, propagation_method, sparse_matrix):
                 else:
                     utmfile.write(str(M[x][y]) + " ")
             utmfile.write("\n")
+
 # Metodo che crea il file ascii delle barriere
 def ascii_barrier(id_vent, propagation_method, edges_list):
     utm_filename = "ASCII_grids/" +  propagation_method + "_" + str(id_vent) + "_barrier.txt"
