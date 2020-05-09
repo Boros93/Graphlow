@@ -16,6 +16,7 @@ import conversion
 import re
 
 # AGGIUNGERE I NUOVI COMANDI
+# FIXARE LE INTERFACCE
 def man():
     print(r"""
     - exit: is used to quit the program. Just type 'exit' in command line.
@@ -182,7 +183,13 @@ def choose_setting():
 
     return setting_list
 
-
+# il comando esegue il metodo di propagazione trivector. supporta l'esecuzione su una sola bocca
+# oppure su più bocche.
+# per eseguire il comando a bocca singola specificare id_vent, threshold (se si desidera specificarne una) 
+# ESEMPIO DI UTILIZZO: trivector 2233
+# per eseguire il comando a bocca multipla specificare un id_vent, un metodo di determinazione del vicinato 
+# e un raggio.
+# ESEMPIO DI UTILIZZO: trivector 2233 moore 2
 def trivector_cmd(id_vent: str, neighbor_method = None, radius = 1, threshold = -1, header = False):
     propagation = Propagation()
     # Setta i parametri
@@ -231,7 +238,7 @@ def montecarlo_cmd(id_vent, n_epochs = -1, second_chance = -1, header = False):
     visualize_and_metrics(id_vent, "montecarlo", sparse_matrix, G, header)
 
 
-def visualize_and_metrics(id_vents, propagation_method, sparse_matrix, G, header):
+def visualize_and_metrics(id_vents: list, propagation_method, sparse_matrix, G, header):
     # Esportazione in ASCII Grid
     mc.ascii_creator(id_vents, propagation_method, sparse_matrix)
     # Calcolo delle metriche
@@ -244,21 +251,46 @@ def visualize_and_metrics(id_vents, propagation_method, sparse_matrix, G, header
     
     return metric_list
 
-def test(id_vent, distance=4, dimension=2, mode='iterative', measure='trasmittance'):
-    p = Propagation()
-    p.trivector(id_vent)
-    G = p.get_Graph()
-    list_edges = ga.get_edges_to_cut(G, id_vent, dimension, distance, mode, measure)
+def test():
+    return
 
-    p.set_Graph(load_graph())
-    p.cut_edges(list_edges)
-    G = p.get_Graph()
+# taglia un numero di archi (specificato dall'utente) dal 
+# grafo a una distanza minima specificata dalla bocca
+# supporta due tipi esecuzione: iterative/batch
+# ESEMPIO DI UTILIZZO: autocut 2233 5 2 iterative trasmittance moore 2
+def auto_cut_edges(id_vent, distance=4, neighbor_method = None, dimension=2, mode='iterative', measure='trasmittance', radius = 1):
+    propagation = Propagation()
+    id_vents = []
+    propagation_method = "trivector"
+    if neighbor_method != None:
+        if neighbor_method == "moore" or neighbor_method == "neumann":
+            id_vents = utility.get_neighborhood(id_vent, neighbor_method, radius)
+            propagation_method += neighbor_method + str(radius)
+        else:
+            print("You must specify a valid neighbor method: moore / neumann.")
+            return None
+    else:
+        id_vents = [id_vent]
+    
+    # Esecuzione algoritmo prima di tagliare
+    no_cutted_sparse = propagation.trivector(id_vents)
+    G = propagation.get_Graph()
+    visualize_and_metrics(id_vents, propagation_method, no_cutted_sparse, G, False)
 
-    sparse_matrix = p.trivector(id_vent)
-    visualize_and_metrics(str(id_vent), "trivector", sparse_matrix, G, False)
-    mc.ascii_barrier(id_vent, "trivector", list_edges)
+    # selezione degli archi da tagliare
+    list_edges = ga.get_edges_to_cut(G, id_vents, distance, dimension, mode, measure)
 
-def cut_edges(id_vent, *list_edges):
+    propagation.set_Graph(load_graph())
+    # taglio archi selezionati
+    propagation.cut_edges(list_edges)
+
+    # esecuzione trivector dopo il taglio degli archi
+    cutted_sparse = propagation.trivector(id_vents)
+    G = propagation.get_Graph()
+    visualize_and_metrics(id_vents, propagation_method, cutted_sparse, G, False)
+    mc.ascii_barrier(id_vent, propagation_method, list_edges)
+
+def manually_cut_edges(id_vent, *list_edges):
     edges_to_cut = []
     for edges in list_edges:
         edges_to_cut.append(edges.split(','))

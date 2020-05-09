@@ -82,21 +82,21 @@ def cut_edges(G, edges_list: list):
     return G
 
 # G: Grafo dopo la simulazione
-# vent_id: Bocca della simulazione
+# id_vents: lista di bocche della simulazione
 # dimension: Numero di archi da tagliare
 # distance: Tutti gli archi a distanza < distance dalla bocca non verranno tagliati
 # mode: Modalità di taglio [iterative/batch]
 # measure: Misura da utilizzare [trasmittance/weight] weight:ogni arco ha peso 1
-
-def get_edges_to_cut(G, id_vent, dimension=5, distance=2, mode='iterative', measure='trasmittance'):
-
+def get_edges_to_cut(G, id_vents: list, distance, dimension, mode, measure):
     dimension = int(dimension)
     distance = int(distance)
     mode = str(mode)
     measure = str(measure)
 
     # Conversione vent
-    vent_id = conversion.get_node_from_idvent(int(id_vent))
+    id_nodes = []
+    for i in range(len(id_vents)):
+        id_nodes.append(conversion.get_node_from_idvent(int(id_vents[i])))
 
     # Estrazione sottografo
     for i in range(len(G.nodes)):
@@ -125,8 +125,9 @@ def get_edges_to_cut(G, id_vent, dimension=5, distance=2, mode='iterative', meas
         for _ in range(dimension):
             # Calcolo delle efficienze
             efficiency = {}
-            for n in city_nodes:
-                efficiency[n] = [nx.shortest_path_length(G, vent_id, n, weight=measure), nx.shortest_path(G, vent_id, n, weight=measure)]
+            for id_node in id_nodes:
+                for n in city_nodes:
+                    efficiency[(id_node, n)] = [nx.shortest_path_length(G, id_node, n, weight=measure), nx.shortest_path(G, id_node, n, weight=measure)]
             
             # Conteggio archi
             edges = {}
@@ -152,8 +153,9 @@ def get_edges_to_cut(G, id_vent, dimension=5, distance=2, mode='iterative', meas
     if mode == 'batch':
         # Calcolo delle efficienze
         efficiency = {}
-        for n in city_nodes:
-            efficiency[n] = [nx.shortest_path_length(G, vent_id, n, weight=measure), nx.shortest_path(G, vent_id, n, weight=measure)]
+        for id_node in id_nodes:
+            for n in city_nodes:
+                efficiency[(id_node, n)] = [nx.shortest_path_length(G, id_node, n, weight=measure), nx.shortest_path(G, id_node, n, weight=measure)]
         
         # Conteggio archi
         edges = {}
