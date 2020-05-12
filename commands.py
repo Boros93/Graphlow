@@ -95,11 +95,34 @@ def show_sim(spec=None, real_class = 1):
     sparse_matrix = propagation.real(id_vent, real_class)
     # Esportazione in ASCII Grid
     mc.ascii_creator(id_vent, "real_" + real_class, sparse_matrix)
-    
-def norm_weight():
-    G = nx.read_gexf("graph_gexf/scaled_map91x75_normalized.gexf")
-    G = gm.normalize_weight(G)
-    gm.export_graph(G, "weight_norm_graph.gexf", False)
+
+def realsim_cmd(id_vent: str, real_class: str, neighbor_method: str, radius: int):
+    propagation = Propagation()
+    id_vents = [id_vent]
+    propagation_method = "real"
+    # Se la classe è 0 allora bisogna fare Unify
+    if real_class == "0":
+        if neighbor_method != None:
+            if neighbor_method == "moore" or neighbor_method == "neumann":
+                id_vents = utility.get_neighborhood(id_vent, neighbor_method, radius)
+                propagation_method = neighbor_method + str(radius)
+            else:
+                print("You must specify a valid neighbor method: moore / neumann.")
+                return None  
+        sparse_matrix_c, sparse_matrix_d = propagation.real(id_vents, real_class)
+        # Esportazione in ASCII Grid
+        mc.ascii_creator(id_vents, "ucsim" + propagation_method, sparse_matrix_c)
+        mc.ascii_creator(id_vents, "udsim" + propagation_method, sparse_matrix_d)
+        return 
+    else:
+        if len(id_vents) > 1:
+            raise ValueError("multiple vents not supported for class != 0")
+        sparse_matrix = propagation.real(id_vents, real_class)
+        # Esportazione in ASCII Grid
+        mc.ascii_creator(id_vents, propagation_method + real_class, sparse_matrix)
+        return
+
+
 
 def node_from_idvent(id_vent):
     node = conversion.get_node_from_idvent(id_vent)
@@ -190,7 +213,7 @@ def choose_setting():
 # per eseguire il comando a bocca multipla specificare un id_vent, un metodo di determinazione del vicinato 
 # e un raggio.
 # ESEMPIO DI UTILIZZO: trivector 2233 moore 2
-def trivector_cmd(id_vent: str, neighbor_method = None, radius = 1, threshold = -1, header = False):
+def trivector_cmd(id_vent: str, neighbor_method: str, radius: int, threshold: float, header = False):
     propagation = Propagation()
     # Setta i parametri
     propagation.set_trivector(threshold)
@@ -304,7 +327,7 @@ def test(id_vent, distance = 4):
 # grafo a una distanza minima specificata dalla bocca
 # supporta due tipi esecuzione: iterative/batch
 # ESEMPIO DI UTILIZZO: autocut 2233 5 2 iterative trasmittance moore 2
-def auto_cut_edges(id_vent, distance=4, neighbor_method = None, dimension=2, mode='iterative', measure='trasmittance', radius = 1):
+def autocut_cmd(id_vent: str, distance: int, neighbor_method: str, radius: int, dimension: int, mode: str, measure: str):
     propagation = Propagation()
     id_vents = []
     propagation_method = "trivector"
@@ -321,7 +344,8 @@ def auto_cut_edges(id_vent, distance=4, neighbor_method = None, dimension=2, mod
     # Esecuzione algoritmo prima di tagliare
     no_cutted_sparse = propagation.trivector(id_vents)
     G = propagation.get_Graph()
-    visualize_and_metrics(id_vents, propagation_method, no_cutted_sparse, G, False)
+    # Decommentare se si vuole stampare le metriche del trivector senza taglio 
+    # visualize_and_metrics(id_vents, propagation_method, no_cutted_sparse, G, False)
 
     # selezione degli archi da tagliare
     list_edges = ga.get_edges_to_cut(G, id_vents, distance, dimension, mode, measure)
@@ -336,17 +360,27 @@ def auto_cut_edges(id_vent, distance=4, neighbor_method = None, dimension=2, mod
     visualize_and_metrics(id_vents, propagation_method, cutted_sparse, G, False)
     mc.ascii_barrier(id_vent, propagation_method, list_edges)
 
-def manually_cut_edges(id_vent, *list_edges):
+def cut_cmd(id_vent, list_edges: list, neighbor_method, radius):
     edges_to_cut = []
     for edges in list_edges:
         edges_to_cut.append(edges.split(','))
-    p = Propagation()
-    p.cut_edges(edges_to_cut)
-    # Esportazione in ASCII e calcolo metriche
-    G = p.get_Graph()
-    p.set_weight("trasmittance")
-    sparse_matrix = p.trivector(id_vent)
-    visualize_and_metrics(id_vent, "trivector", sparse_matrix, G, False)
-    mc.ascii_barrier(id_vent, "trivector", edges_to_cut)
+    propagation = Propagation()
+    id_vents = []
+    propagation_method = "trivector"
+    if neighbor_method != None:
+        if neighbor_method == "moore" or neighbor_method == "neumann":
+            id_vents = utility.get_neighborhood(id_vent, neighbor_method, radius)
+            propagation_method += neighbor_method + str(radius)
+        else:
+            print("You must specify a valid neighbor method: moore / neumann.")
+            return None
+    else:
+        id_vents = [id_vent]
 
+    propagation.cut_edges(edges_to_cut)
+    # Esportazione in ASCII e calcolo metriche
+    sparse_matrix = propagation.trivector(id_vents)
+    G = propagation.get_Graph()
+    visualize_and_metrics(id_vents, propagation_method, sparse_matrix, G, False)
+    mc.ascii_barrier(id_vent, propagation_method, edges_to_cut)
 

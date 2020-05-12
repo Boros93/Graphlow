@@ -229,12 +229,12 @@ class Propagation:
         sparse_matrix = self.export_sparse(vect, id_vent, "proberuption")
         return sparse_matrix
 
-    def real(self, id_vents: list, real_class):
+    def real(self, id_vents: list, real_class: str):
         if not real_class == "0":
             filename = "Data/simulations/NotN_vent_" + str(id_vents[0]) + "_" + str(real_class) + ".txt"
         else:
-            sparse_M_c = utility.unify_sims(id_vents, "c")
-            sparse_M_d = utility.unify_sims(id_vents, "d")
+            sparse_M_c = utility.unify_sims(id_vents, "c", "real")
+            sparse_M_d = utility.unify_sims(id_vents, "d", "real")
             return sparse_M_c, sparse_M_d
         
         # Lettura file
