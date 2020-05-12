@@ -10,21 +10,21 @@ def parse_input():
 
     # Trivector
     trivector_parser = subparser.add_parser('trivector')
-    trivector_parser.add_argument('id_vent', type=str, help='Bocca')
-    trivector_parser.add_argument('-t', '--threshold', type=float, default=0.001, help="Soglia")
-    trivector_parser.add_argument('-neigh', '--neighborhood', type=str, choices=['moore', 'neumann'], default=None, help='Vicinato')
-    trivector_parser.add_argument('-r', '--radius', type=int, default=1, help="Raggio del vicinato")
+    trivector_parser.add_argument('id_vent', type=str, help='ID of grid Vent')
+    trivector_parser.add_argument('-t', '--threshold', type=float, default=0.001, help="Trivector threshold. Default=0.001")
+    trivector_parser.add_argument('-neigh', '--neighborhood', type=str, choices=['moore', 'neumann'], default=None, help='Neighborhood of Vent. Default=None')
+    trivector_parser.add_argument('-r', '--radius', type=int, default=1, help="Radius of the neighborhood. Default=1")
 
     # Autocut
     autocut_parser = subparser.add_parser('autocut')
     autocut_parser.add_argument('id_vent', type=str, help='Bocca')
-    autocut_parser.add_argument('-t', '--threshold', type=float, default=0.001, help="Soglia del trivector")
-    autocut_parser.add_argument('-neigh', '--neighborhood', type=str, choices=['moore', 'neumann'], default=None, help='Vicinato')
-    autocut_parser.add_argument('-r', '--radius', type=int, default=1, help="Raggio del vicinato")
-    autocut_parser.add_argument('-dist', '--distance', type=int, default=4, help="Distanza dalla bocca")
-    autocut_parser.add_argument('-dim', '--dimension', type=int, default=2, help="Numero archi da tagliare")
-    autocut_parser.add_argument('-mod', '--mode', type=str, choices=['iterative', 'batch'], default='iterative', help='Metodo di taglio archi')
-    autocut_parser.add_argument('-me', '--measure', type=str, choices=['trasmittance', 'weight'], default='trasmittance', help='Misura da utilizzare per il taglio')
+    autocut_parser.add_argument('-t', '--threshold', type=float, default=0.001, help="Trivector threshold. Default=0.001")
+    autocut_parser.add_argument('-neigh', '--neighborhood', type=str, choices=['moore', 'neumann'], default=None, help='Neighborhood of Vent. Default=None')
+    autocut_parser.add_argument('-r', '--radius', type=int, default=1, help="Radius of the neighborhood. Default=1")
+    autocut_parser.add_argument('-dist', '--distance', type=int, default=4, help="Minimum distance from Vent. Default=4")
+    autocut_parser.add_argument('-dim', '--dimension', type=int, default=2, help="Number of edges to cut. Default=2")
+    autocut_parser.add_argument('-mod', '--mode', type=str, choices=['iterative', 'batch'], default='iterative', help='Method for cutting. Default=iterative')
+    autocut_parser.add_argument('-me', '--measure', type=str, choices=['trasmittance', 'weight'], default='trasmittance', help='Measure for cutting. Default=trasmittance')
     
     return parser.parse_args()
 
