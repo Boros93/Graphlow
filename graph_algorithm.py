@@ -88,11 +88,6 @@ def cut_edges(G, edges_list: list):
 # mode: Modalità di taglio [iterative/batch]
 # measure: Misura da utilizzare [trasmittance/weight] weight:ogni arco ha peso 1
 def get_edges_to_cut(G, id_vents: list, distance, dimension, mode, measure):
-    dimension = int(dimension)
-    distance = int(distance)
-    mode = str(mode)
-    measure = str(measure)
-
     # Conversione vent
     id_nodes = []
     for i in range(len(id_vents)):
