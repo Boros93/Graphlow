@@ -8,6 +8,7 @@ import os
 import numpy as np
 import conversion
 import map_creator as mc
+
 def create_graph(l_map):
     G = nx.DiGraph()
     ''' Aggrega le regioni, restituendo una lista formata da altre due liste di tipo Region:

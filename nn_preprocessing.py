@@ -40,27 +40,9 @@ def vect_sim(id_vent):
             row, col = conversion.cast_coord_attr(coord)
             # si riempie il vettore in posizione u con il valore di M(row, col)
             vect[int(u)] = M[row][col]
-    filename = "nn/test_set/" + str(conversion.get_node_from_idvent(id_vent))
+    filename = "Data/real_vectors/" + str(id_vent)
     # esporta il vettore
     np.save(filename, vect)
-
-# divide l'insieme di vettori delle simulazioni in test, train e validation set
-def split_dataset():
-    dataset_path = "nn/"
-    train_set_path = "train_set/" # 70%
-    test_set_path = "test_set/" # 30%
-
-    file_list = glob(dataset_path + "*" + ".npy")
-    np.random.seed(33)
-    idx = np.random.permutation(len(file_list))
-    train_size = int(len(file_list) * 0.7)
-    
-    for i in range(0, train_size):
-        filename = file_list[idx[i]]
-        # isola il nome del file
-        filename = os.path.basename(filename)
-        # sposta il file nella cartella del train_set
-        os.rename(dataset_path + filename, dataset_path + train_set_path + filename)
 
 # inserisce i pesi ottenuti dall'allenamento nei nodi del grafo.
 def set_new_G_weights():
@@ -81,5 +63,4 @@ def set_new_G_weights():
 
     nx.write_gexf(G, "test_relu.gexf")
 
-
-set_new_G_weights()
+#set_new_G_weights()

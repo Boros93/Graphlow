@@ -1,19 +1,21 @@
 import map_creator as mc
 import graph_algorithm as ga
 import graph_maker as gm
-import os
+import numpy as np 
 import networkx as nx
 import map_creator as mc
-import probabilistic_algorithm
-from utility import graph_to_matrix
-from utility import load_graph
 import utility
-from scipy import sparse
 import random
-from Propagation import Propagation
 import metrics
 import conversion
 import re
+import math
+import glob
+import os
+from utility import graph_to_matrix
+from utility import load_graph
+from scipy import sparse
+from Propagation import Propagation
 
 # AGGIUNGERE I NUOVI COMANDI
 # FIXARE LE INTERFACCE
@@ -121,8 +123,6 @@ def realsim_cmd(id_vent: str, real_class: str, neighbor_method: str, radius: int
         # Esportazione in ASCII Grid
         mc.ascii_creator(id_vents, propagation_method + real_class, sparse_matrix)
         return
-
-
 
 def node_from_idvent(id_vent):
     node = conversion.get_node_from_idvent(id_vent)
@@ -235,7 +235,6 @@ def trivector_cmd(id_vent: str, neighbor_method: str, radius: int, threshold: fl
     G = propagation.get_Graph()
     visualize_and_metrics(id_vents, propagation_method, sparse_matrix, G, header)
 
-
 def eruption_cmd(id_vent, volume = -1, n_days = -1, threshold = -1, header = False):
     if id_vent == 0:
         return
@@ -260,7 +259,6 @@ def montecarlo_cmd(id_vent, n_epochs = -1, second_chance = -1, header = False):
     G = propagation.get_Graph()
     visualize_and_metrics(id_vent, "montecarlo", sparse_matrix, G, header)
 
-
 def visualize_and_metrics(id_vents: list, propagation_method, sparse_matrix, G, header):
     # Esportazione in ASCII Grid
     mc.ascii_creator(id_vents, propagation_method, sparse_matrix)
@@ -274,7 +272,6 @@ def visualize_and_metrics(id_vents: list, propagation_method, sparse_matrix, G, 
     
     return metric_list
 
-import math
 def test(id_vent, distance = 4):
     propagation = Propagation()
     propagation.trivector([id_vent])
@@ -384,3 +381,41 @@ def cut_cmd(id_vent, list_edges: list, neighbor_method, radius):
     visualize_and_metrics(id_vents, propagation_method, sparse_matrix, G, False)
     mc.ascii_barrier(id_vent, propagation_method, edges_to_cut)
 
+def weight_adjustment():
+    vent_list = []
+    file_list = glob.glob("Data/real_vectors/*")
+    for f in file_list:
+        vent_list.append(f[18:-4])
+
+    for _ in range(1):
+        global_error = np.zeros((5820,))
+        for vent in vent_list:
+            p = Propagation()
+            p.trivector([vent])
+            out = p.get_graph_vect()
+            y = np.load("Data/real_vectors/" + vent + ".npy")
+            error = out - y
+            global_error += error
+        mean_error = global_error / len(vent_list)
+
+        # Calcolo dei nuovi pesi
+        G = load_graph()
+        for id_node, err in enumerate(mean_error):
+            pre = list(G.predecessors(str(id_node)))
+            succ = list(G.successors(str(id_node)))
+
+            delta = err / (len(pre) + len(succ))
+
+            for v in pre:
+                G.edges[v, str(id_node)]['prop_weight'] += delta
+            for v in succ:
+                G.edges[str(id_node), v]['prop_weight'] += delta
+        
+        # Normalizzazione pesi
+        G = gm.normalize_prop_weight(G)
+        p.set_Graph(G)
+
+    # Export del grafo
+    p.export_graph('trained_graphlow.gexf')
+
+weight_adjustment()

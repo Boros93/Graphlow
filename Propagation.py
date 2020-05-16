@@ -13,6 +13,7 @@ class Propagation:
         # --- Parametri default ---
         # Trivector:
         self.tri_threshold = 0.001
+        self.graph_vect = np.zeros((5820,))
 
         # Eruption:
         self.eru_volume = 1000
@@ -102,6 +103,8 @@ class Propagation:
         for index in range(0, len(vect3)):
             value = float(vect3[index])
             self.G.nodes[str(index)]['current_flow'] = value
+        
+        self.graph_vect = vect3
         return self.create_sparse(vect3)
 
     def eruption(self, id_vents: list):
@@ -296,6 +299,9 @@ class Propagation:
 
     def get_Graph(self):
         return self.G
+
+    def get_graph_vect(self) -> np.ndarray:
+        return self.graph_vect
 
     def cut_edges(self, edges_list: list):
         for u, v in self.G.edges():

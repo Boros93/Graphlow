@@ -52,5 +52,6 @@ def switch_command(args):
         commands.cut_cmd(id_vent=args.id_vent, list_edges=args.edges, neighbor_method=args.neighborhood, radius=args.radius)
     elif args.command == "realsim":
         commands.realsim_cmd(id_vent=args.id_vent, real_class=args.realclass, neighbor_method=args.neighborhood, radius=args.radius)
+        
 args = parse_input()
 switch_command(args)

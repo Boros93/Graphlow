@@ -60,7 +60,7 @@ def cast_coord_attr(coord):
     return coord_x, coord_y
 
 def id_from_not_n(not_n_filename):
-    id_vent = int(not_n_filename[10: -6])-1
+    id_vent = int(not_n_filename[10: -6])
     return id_vent
 
 # cast delle coordinate northing e easting in coordinate di una matrice (nel nostro caso 2275 x 1975, che sono le celle del DEM)

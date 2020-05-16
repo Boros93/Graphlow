@@ -13,9 +13,9 @@ def compute(id_vents: list, propagation_method, sparse_matrix, G):
     M_graphlow = sparse_matrix.toarray()
     # Caricamento simulazioni MAGFLOW da confrontare
     # real[row][col] = 0 o 1
-    udsim_sparse_file = "sparse/sparse_sim_d_" + propagation_method + "_" + str(id_vents[0]) + ".npz"
+    udsim_sparse_file = "sparse/real/sparse_sim_d_" + propagation_method + "_" + str(id_vents[0]) + ".npz"
     # real[row][col] = TRA 0 e 1
-    ucsim_sparse_file = "sparse/sparse_sim_c_" + propagation_method + "_" + str(id_vents[0]) + ".npz"
+    ucsim_sparse_file = "sparse/real/sparse_sim_c_" + propagation_method + "_" + str(id_vents[0]) + ".npz"
     
     # Se non esiste in memoria la matrice sparsa della simulazione, le crea e esporta anche l'ascii grid
     if not os.path.isfile(udsim_sparse_file):
