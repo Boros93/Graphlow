@@ -233,5 +233,5 @@ def normalize_prop_weight(G):
         if sum_weight > 0:
             for v in G.successors(u):
                 new_prop = G.edges[u, v]["prop_weight"] / sum_weight
-                G.edges[u, v]["prop_weight"] =  new_prop
+                G.edges[u, v]["prop_weight"] = new_prop
     return G         

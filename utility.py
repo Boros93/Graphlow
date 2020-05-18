@@ -77,7 +77,7 @@ def graph_to_matrix(G):
     np.save("graph_matrix.npy", M)
 
 # genera una matrice sparsa che rappresenta l'unione delle simulazioni MAGFLOW della bocca specificata
-def unify_sims(id_vents: list, char, propagation_method):
+def unify_sims(id_vents: list, char, neighbor):
     simspath = "Data/simulations/"
 
     all_flows = np.zeros((91, 75), dtype=float)
@@ -123,7 +123,7 @@ def unify_sims(id_vents: list, char, propagation_method):
                 if not all_flows[r][c] == 0:
                     all_flows[r][c] = all_flows[r][c] / all_norm
     sparse_matrix = sparse.csr_matrix(all_flows)
-    sparse.save_npz("sparse/real/sparse_sim_" + char + "_" + propagation_method + "_" + str(id_vents[0]) + ".npz", sparse_matrix)
+    sparse.save_npz("sparse/sparse_sim_" + char + neighbor + "_" + str(id_vents[0]) + ".npz", sparse_matrix)
     return sparse_matrix
 
 def init_table(propagation_method):
@@ -158,6 +158,18 @@ def node_vent_csv():
             # scrive la linea id_vent,id_node
             id_node = conversion.get_node_from_idvent(v)
             filewriter.writerow([v, id_node])
+
+def create_vent_dict():
+    # Leggo il file csv
+    # Creo il dizionario key:vent, value:node
+    vent_node_dict = {}
+    filename = "CSVMaps/node_vent_map.csv"
+    with open(filename) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        for i, row in enumerate(csv_reader):
+            if i != 0:
+                vent_node_dict[row[0]] = row[1]
+    return vent_node_dict
 
 # calcolo del vicinato di moore o di neumann
 def get_neighborhood(id_vent, neighbor_method, radius):

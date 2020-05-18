@@ -2,18 +2,19 @@ import utility
 import conversion
 import numpy as np
 import queue
-from scipy import sparse
 import math
 import random
 import metrics
 import networkx as nx
+import time
+
+from scipy import sparse
 
 class Propagation:
     def __init__(self):
         # --- Parametri default ---
         # Trivector:
         self.tri_threshold = 0.001
-        self.graph_vect = np.zeros((5820,))
 
         # Eruption:
         self.eru_volume = 1000
@@ -25,6 +26,76 @@ class Propagation:
         self.prob_second_chance = 0
 
         self.G = utility.load_graph()
+
+    def trivector_train(self, id_node_vent: str):
+        root = id_node_vent
+        
+        # Inizializzazione dei tre vettori temporali
+        vect1 = np.zeros(len(self.G.nodes()))
+        vect2 = np.zeros(len(self.G.nodes()))
+        vect3 = np.zeros(len(self.G.nodes()))
+        # Inizializzazione della root
+        vect2[int(root)] = 1
+        vect3[int(root)] = 1
+        # Creazione di due code, la prima per il ciclo interno e la seconda per quello esterno
+        node_to_visit = queue.Queue()
+        support_queue = queue.Queue()
+
+        #definisce la chiave da controllare 
+        key_to_control = "prop_weight" 
+
+        # Iniziamo mettendo i vicini della root nella coda esterna
+        for v in self.G.successors(root):
+            support_queue.put(v)
+        
+        # Inizio ciclo esterno, cicla fin quando non abbiamo più nodi da esplorare
+        while not support_queue.empty():
+            
+            # Trasferisco i nuovi vicini alla coda interna per poterli calcolare
+            while not support_queue.empty():
+                node_to_visit.put(support_queue.get())
+            # Inizio ciclo interno
+            while not node_to_visit.empty():
+                # Estraggo il nodo di cui aggiornare la probabilità
+                j_node = node_to_visit.get()
+                # Estraggo i predecessori di j per calcolarmi gli incrementi
+                pred = []
+                # Li appendo in lista, castandoli ad int
+                for v in self.G.predecessors(j_node):
+                    pred.append(int(v))
+                # Inizio formula
+                increment = 0
+                for alpha in range(0, len(pred)):
+                    # Inizializzazione delle due produttorie interne (si possono eliminare)
+                    product1 = 1
+                    product2 = 1
+                    for beta in range(0, len(pred)):
+                    # memorizzo il valore della trasmittanza dell'arco (beta, j)
+                        a = self.G.edges[str(pred[beta]), j_node][key_to_control]
+                        # prima produttoria
+                        if beta < alpha:
+                            product1 *= 1 - (a * vect2[pred[beta]])
+                        else:
+                            product2 *= 1 - a * vect1[pred[beta]]
+                    partial = product1 * product2
+                    partial *= (vect2[pred[alpha]] - vect1[pred[alpha]])
+                    increment += (partial * self.G.edges[str(pred[alpha]), j_node][key_to_control])
+                # Soglia dell'incremento
+                if increment > self.tri_threshold:
+                    vect3[int(j_node)] = vect2[int(j_node)] + increment
+                    # Inserisco in coda i successori di j in modo che verranno esplorati al prossimo ciclo
+                
+                support_queue_list = list(support_queue.queue)
+                if increment > 1.e-7:
+                    for v in self.G.successors(j_node):
+                        if True: #G.edges[j_node, v][key_to_control] - G.edges[v, j_node][key_to_control] > 0:
+                            if v not in support_queue_list:
+                                support_queue.put(v)
+            # Shift dei vettori temporali
+            vect1 = vect2.copy()
+            vect2 = vect3.copy()
+            # vect3 resta uguale
+        return vect3
 
     def trivector(self, id_vents: list):
         roots = []
@@ -104,7 +175,6 @@ class Propagation:
             value = float(vect3[index])
             self.G.nodes[str(index)]['current_flow'] = value
         
-        self.graph_vect = vect3
         return self.create_sparse(vect3)
 
     def eruption(self, id_vents: list):
@@ -232,12 +302,12 @@ class Propagation:
         sparse_matrix = self.export_sparse(vect, id_vent, "proberuption")
         return sparse_matrix
 
-    def real(self, id_vents: list, real_class: str):
+    def real(self, id_vents: list, real_class: str, neighbor: str):
         if not real_class == "0":
             filename = "Data/simulations/NotN_vent_" + str(id_vents[0]) + "_" + str(real_class) + ".txt"
         else:
-            sparse_M_c = utility.unify_sims(id_vents, "c", "real")
-            sparse_M_d = utility.unify_sims(id_vents, "d", "real")
+            sparse_M_c = utility.unify_sims(id_vents, "c", neighbor)
+            sparse_M_d = utility.unify_sims(id_vents, "d", neighbor)
             return sparse_M_c, sparse_M_d
         
         # Lettura file

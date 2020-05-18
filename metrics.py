@@ -9,21 +9,21 @@ from scipy import sparse
 # TN |     X    |   X   |
 # FP |     V    |   X   |
 # FN |     X    |   V   |
-def compute(id_vents: list, propagation_method, sparse_matrix, G):
+def compute(id_vents: list, neighbor, sparse_matrix, G):
     M_graphlow = sparse_matrix.toarray()
     # Caricamento simulazioni MAGFLOW da confrontare
     # real[row][col] = 0 o 1
-    udsim_sparse_file = "sparse/real/sparse_sim_d_" + propagation_method + "_" + str(id_vents[0]) + ".npz"
+    udsim_sparse_file = "sparse/sparse_sim_d" + neighbor + "_" + str(id_vents[0]) + ".npz"
     # real[row][col] = TRA 0 e 1
-    ucsim_sparse_file = "sparse/real/sparse_sim_c_" + propagation_method + "_" + str(id_vents[0]) + ".npz"
+    ucsim_sparse_file = "sparse/sparse_sim_c" + neighbor + "_" + str(id_vents[0]) + ".npz"
     
     # Se non esiste in memoria la matrice sparsa della simulazione, le crea e esporta anche l'ascii grid
     if not os.path.isfile(udsim_sparse_file):
-        sparse_matrix = utility.unify_sims(id_vents, 'd', propagation_method)
-        mc.ascii_creator(id_vents, "udsim", sparse_matrix)
+        sparse_matrix = utility.unify_sims(id_vents, 'd', neighbor)
+        mc.ascii_creator(id_vents, "udsim" + neighbor, sparse_matrix)
     if not os.path.isfile(ucsim_sparse_file):
-        sparse_matrix = utility.unify_sims(id_vents, 'c', propagation_method)
-        mc.ascii_creator(id_vents, "ucsim", sparse_matrix)
+        sparse_matrix = utility.unify_sims(id_vents, 'c', neighbor)
+        mc.ascii_creator(id_vents, "ucsim" + neighbor, sparse_matrix)
         
     M_real_d = sparse.load_npz(udsim_sparse_file).toarray()
     M_real_c = sparse.load_npz(ucsim_sparse_file).toarray()

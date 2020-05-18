@@ -101,27 +101,27 @@ def show_sim(spec=None, real_class = 1):
 def realsim_cmd(id_vent: str, real_class: str, neighbor_method: str, radius: int):
     propagation = Propagation()
     id_vents = [id_vent]
-    propagation_method = "real"
+    neighbor = ""
     # Se la classe è 0 allora bisogna fare Unify
     if real_class == "0":
         if neighbor_method != None:
             if neighbor_method == "moore" or neighbor_method == "neumann":
                 id_vents = utility.get_neighborhood(id_vent, neighbor_method, radius)
-                propagation_method = neighbor_method + str(radius)
+                neighbor = "_" + neighbor_method + str(radius)
             else:
                 print("You must specify a valid neighbor method: moore / neumann.")
                 return None  
-        sparse_matrix_c, sparse_matrix_d = propagation.real(id_vents, real_class)
+        sparse_matrix_c, sparse_matrix_d = propagation.real(id_vents, real_class, neighbor)
         # Esportazione in ASCII Grid
-        mc.ascii_creator(id_vents, "ucsim" + propagation_method, sparse_matrix_c)
-        mc.ascii_creator(id_vents, "udsim" + propagation_method, sparse_matrix_d)
+        mc.ascii_creator(id_vents, "ucsim" + neighbor, sparse_matrix_c)
+        mc.ascii_creator(id_vents, "udsim" + neighbor, sparse_matrix_d)
         return 
     else:
         if len(id_vents) > 1:
             raise ValueError("multiple vents not supported for class != 0")
-        sparse_matrix = propagation.real(id_vents, real_class)
+        sparse_matrix = propagation.real(id_vents, real_class, neighbor)
         # Esportazione in ASCII Grid
-        mc.ascii_creator(id_vents, propagation_method + real_class, sparse_matrix)
+        mc.ascii_creator(id_vents, neighbor + real_class, sparse_matrix)
         return
 
 def node_from_idvent(id_vent):
@@ -219,10 +219,11 @@ def trivector_cmd(id_vent: str, neighbor_method: str, radius: int, threshold: fl
     propagation.set_trivector(threshold)
     id_vents = []
     propagation_method = "trivector"
+    neighbor = ""
     if neighbor_method != None:
         if neighbor_method == "moore" or neighbor_method == "neumann":
             id_vents = utility.get_neighborhood(id_vent, neighbor_method, radius)
-            propagation_method += neighbor_method + str(radius)
+            neighbor += "_" + neighbor_method + str(radius)
         else:
             print("You must specify a valid neighbor method: moore / neumann.")
             return None
@@ -233,7 +234,7 @@ def trivector_cmd(id_vent: str, neighbor_method: str, radius: int, threshold: fl
     sparse_matrix = propagation.trivector(id_vents)
     # Esportazione in ASCII e calcolo metriche
     G = propagation.get_Graph()
-    visualize_and_metrics(id_vents, propagation_method, sparse_matrix, G, header)
+    visualize_and_metrics(id_vents, propagation_method, neighbor, sparse_matrix, G, header)
 
 def eruption_cmd(id_vent, volume = -1, n_days = -1, threshold = -1, header = False):
     if id_vent == 0:
@@ -259,11 +260,11 @@ def montecarlo_cmd(id_vent, n_epochs = -1, second_chance = -1, header = False):
     G = propagation.get_Graph()
     visualize_and_metrics(id_vent, "montecarlo", sparse_matrix, G, header)
 
-def visualize_and_metrics(id_vents: list, propagation_method, sparse_matrix, G, header):
+def visualize_and_metrics(id_vents: list, propagation_method, neighbor, sparse_matrix, G, header):
     # Esportazione in ASCII Grid
-    mc.ascii_creator(id_vents, propagation_method, sparse_matrix)
+    mc.ascii_creator(id_vents, propagation_method + neighbor, sparse_matrix)
     # Calcolo delle metriche
-    metric_list = metrics.compute(id_vents, propagation_method, sparse_matrix, G)
+    metric_list = metrics.compute(id_vents, neighbor, sparse_matrix, G)
     # Intabellamento
     # Scrittura header tabella
     if not header == True:  
@@ -328,10 +329,11 @@ def autocut_cmd(id_vent: str, distance: int, neighbor_method: str, radius: int, 
     propagation = Propagation()
     id_vents = []
     propagation_method = "trivector"
+    neighbor = ""
     if neighbor_method != None:
         if neighbor_method == "moore" or neighbor_method == "neumann":
             id_vents = utility.get_neighborhood(id_vent, neighbor_method, radius)
-            propagation_method += neighbor_method + str(radius)
+            neighbor += "_" + neighbor_method + str(radius)
         else:
             print("You must specify a valid neighbor method: moore / neumann.")
             return None
@@ -354,8 +356,8 @@ def autocut_cmd(id_vent: str, distance: int, neighbor_method: str, radius: int, 
     # esecuzione trivector dopo il taglio degli archi
     cutted_sparse = propagation.trivector(id_vents)
     G = propagation.get_Graph()
-    visualize_and_metrics(id_vents, propagation_method, cutted_sparse, G, False)
-    mc.ascii_barrier(id_vent, propagation_method, list_edges)
+    visualize_and_metrics(id_vents, propagation_method, neighbor, cutted_sparse, G, False)
+    mc.ascii_barrier(id_vent, propagation_method + neighbor, list_edges)
 
 def cut_cmd(id_vent, list_edges: list, neighbor_method, radius):
     edges_to_cut = []
@@ -364,10 +366,11 @@ def cut_cmd(id_vent, list_edges: list, neighbor_method, radius):
     propagation = Propagation()
     id_vents = []
     propagation_method = "trivector"
+    neighbor = ""
     if neighbor_method != None:
         if neighbor_method == "moore" or neighbor_method == "neumann":
             id_vents = utility.get_neighborhood(id_vent, neighbor_method, radius)
-            propagation_method += neighbor_method + str(radius)
+            neighbor += "_" + neighbor_method + str(radius)
         else:
             print("You must specify a valid neighbor method: moore / neumann.")
             return None
@@ -378,21 +381,26 @@ def cut_cmd(id_vent, list_edges: list, neighbor_method, radius):
     # Esportazione in ASCII e calcolo metriche
     sparse_matrix = propagation.trivector(id_vents)
     G = propagation.get_Graph()
-    visualize_and_metrics(id_vents, propagation_method, sparse_matrix, G, False)
-    mc.ascii_barrier(id_vent, propagation_method, edges_to_cut)
+    visualize_and_metrics(id_vents, propagation_method, neighbor, sparse_matrix, G, False)
+    mc.ascii_barrier(id_vent, propagation_method + neighbor, edges_to_cut)
 
 def weight_adjustment():
+    # Lista di vents
     vent_list = []
     file_list = glob.glob("Data/real_vectors/*")
     for f in file_list:
         vent_list.append(f[18:-4])
+    
+    # Dizionario vent, node
+    vent_node_dict = utility.create_vent_dict()
 
     for _ in range(1):
         global_error = np.zeros((5820,))
-        for vent in vent_list:
-            p = Propagation()
-            p.trivector([vent])
-            out = p.get_graph_vect()
+        p = Propagation()
+        for vent in vent_list[0:10]:
+            print(vent)
+            node = vent_node_dict[vent]
+            out = p.trivector_train(node)
             y = np.load("Data/real_vectors/" + vent + ".npy")
             error = out - y
             global_error += error
@@ -404,7 +412,7 @@ def weight_adjustment():
             pre = list(G.predecessors(str(id_node)))
             succ = list(G.successors(str(id_node)))
 
-            delta = err / (len(pre) + len(succ))
+            delta = float(err) / (len(pre) + len(succ))
 
             for v in pre:
                 G.edges[v, str(id_node)]['prop_weight'] += delta
