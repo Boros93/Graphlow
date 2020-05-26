@@ -321,10 +321,6 @@ def test(id_vent, distance = 4):
     min_risk = min(cutted_edges, key=cutted_edges.get)
     print(min_risk)
 
-# taglia un numero di archi (specificato dall'utente) dal 
-# grafo a una distanza minima specificata dalla bocca
-# supporta due tipi esecuzione: iterative/batch
-# ESEMPIO DI UTILIZZO: autocut 2233 5 2 iterative trasmittance moore 2
 def autocut_cmd(id_vent: str, distance: int, neighbor_method: str, radius: int, dimension: int, mode: str, measure: str):
     propagation = Propagation()
     id_vents = []
@@ -386,28 +382,33 @@ def cut_cmd(id_vent, list_edges: list, neighbor_method, radius):
 
 def weight_adjustment():
     # Lista di vents
-    vent_list = []
+    vents = []
     file_list = glob.glob("Data/real_vectors/*")
     for f in file_list:
-        vent_list.append(f[18:-4])
+        vents.append(f[18:-4])
     
     # Dizionario vent, node
     vent_node_dict = utility.create_vent_dict()
 
-    for _ in range(1):
+    p = Propagation()
+    if os.path.exists("graph_gexf/trained_graphlow.gexf"):
+        p.set_Graph(load_graph('trained_graphlow.gexf'))
+
+    for e in range(100):
+        print("Epoca: ", e)
         global_error = np.zeros((5820,))
-        p = Propagation()
-        for vent in vent_list[0:10]:
-            print(vent)
-            node = vent_node_dict[vent]
+        idx = np.random.permutation(len(vents))
+        for i in idx[:500]:
+            print(vents[i])
+            node = vent_node_dict[vents[i]]
             out = p.trivector_train(node)
-            y = np.load("Data/real_vectors/" + vent + ".npy")
+            y = np.load("Data/real_vectors/" + vents[i] + ".npy")
             error = out - y
             global_error += error
-        mean_error = global_error / len(vent_list)
+        mean_error = global_error / len(vents)
 
         # Calcolo dei nuovi pesi
-        G = load_graph()
+        G = p.get_Graph()
         for id_node, err in enumerate(mean_error):
             pre = list(G.predecessors(str(id_node)))
             succ = list(G.successors(str(id_node)))
@@ -419,11 +420,18 @@ def weight_adjustment():
             for v in succ:
                 G.edges[str(id_node), v]['prop_weight'] += delta
         
-        # Normalizzazione pesi
-        G = gm.normalize_prop_weight(G)
+        # Normalizzazione pesi tra 0 e 1
+        #prop_weights = []
+        #for u, v, data in G.edges(data=True):
+        #    prop_weights.append(data['prop_weight'])
+        #min_weight = min(prop_weights)
+        #max_weight = max(prop_weights)
+
+        #for u, v, data in G.edges(data=True):
+        #    G.edges[u, v]['prop_weight'] = (data['prop_weight'] - min_weight) / (max_weight - min_weight) 
+
+        #G = gm.normalize_prop_weight(G)
         p.set_Graph(G)
 
-    # Export del grafo
-    p.export_graph('trained_graphlow.gexf')
-
-weight_adjustment()
+        # Export del grafo
+        p.export_graph('trained_graphlow.gexf')

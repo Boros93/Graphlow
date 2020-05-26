@@ -175,6 +175,30 @@ def get_edges_to_cut(G, id_vents: list, distance, dimension, mode, measure):
 
         return edges_to_cut
 
+# determina la lista di nodi invasi dalla simulazione reale e dal trivector, ritornando il sottografo formato da solo quei nodi
+def get_trivector_subgraph(tri_vect, real_vect):
+    G = utility.load_graph()
+    # lista di nodi invasi dalla simulazione e da trivector.
+    list_nodes = []
+    # scorro il vettore della simulazione reale
+    for i in range(0, len(real_vect)):# il nodo è invaso se l'i-esima posizione del vettore è maggiore di 0
+        if real_vect[i] > 0:
+            list_nodes.append(str(i))
+    # scorro il vettore di trivector
+    for i in range(0, len(tri_vect)):
+        if tri_vect[i] > 0 and str(i) not in list_nodes: # il nodo è invaso se l'i-esima posizione del vettore è maggiore di 0
+            list_nodes.append(str(i))
+    
+    # creo un grafo copia di G
+    sub_G = G.copy()
+    
+    # cancello tutti i nodi del grafo che non sia nella lista
+    for node in G.nodes:
+        if node not in list_nodes:
+            sub_G.remove_node(node)
+
+    return sub_G
+
 '''def eruption(G, id_vent, volume, n_days, alpha, threshold):
     volume_per_day = int(volume/n_days)
     volume_remaining = volume

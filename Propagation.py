@@ -27,8 +27,8 @@ class Propagation:
 
         self.G = utility.load_graph()
 
-    def trivector_train(self, id_node_vent: str):
-        root = id_node_vent
+    def trivector_train(self, id_node: str):
+        root = id_node
         
         # Inizializzazione dei tre vettori temporali
         vect1 = np.zeros(len(self.G.nodes()))
@@ -379,7 +379,3 @@ class Propagation:
                 self.G.edges[u,v]["prop_weight"] = 0
                 self.G.edges[u,v]["trasmittance"] = 0
                 self.G.edges[u,v]["transmit_rank"] = 0
-
-
-
-
