@@ -64,9 +64,15 @@ class Genetic_solution:
         alpha = math.exp(-rho * self.fitness)
         number_of_mutation = math.floor((alpha * len(self.edges)))
 
+        std = (1 - self.fitness) / 5
         for _ in range(number_of_mutation):
             r = np.random.randint(0, len(self.edges)-1)
-            self.edges[r] = np.random.uniform()
+            w = np.random.normal(self.edges[r], std)
+            if w < 0:
+                w = 0
+            if w > 1:
+                w = 1
+            self.edges[r] = w
 
     def increment_age(self):
         self.age += 1

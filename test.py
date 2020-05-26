@@ -11,4 +11,4 @@ tri_vect = p.trivector_train('1867')
 SG = ga.get_trivector_subgraph(tri_vect, real_vect)
 
 gen = Genetic_algorithm('1867', SG.edges)
-gen.start(epochs=20)
+gen.start(epochs=100)

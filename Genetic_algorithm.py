@@ -118,4 +118,4 @@ class Genetic_algorithm:
             for p in self.population:
                 print(p.fitness)
 
-        G = self.population[0].propagation.export_graph('genetic_graph2233.gexf')
+            self.population[0].propagation.export_graph('genetic_graph2233.gexf')
