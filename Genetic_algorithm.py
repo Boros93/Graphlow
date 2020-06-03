@@ -4,14 +4,16 @@ from copy import copy
 import numpy as np 
 
 class Genetic_algorithm:
-    def __init__(self, id_node: str, edges: dict, population_len = 5, rho = 6):
+    def __init__(self, id_vents:list, id_nodes: list, edges: dict, population_len = 5, rho = 8):
         
         # Preso dal csv
-        self.id_vent = '2233'
-        # Real vector
-        self.real_vect = np.load("Data/real_vectors/" + self.id_vent + ".npy")
+        self.id_vents = id_vents
+        # Real vectors
+        self.real_vect = []
+        for vent in id_vents:
+            self.real_vect.append(np.load("Data/real_vectors/" + str(vent) + ".npy"))
 
-        self.id_node = id_node
+        self.id_nodes = id_nodes
         # Dizionario che mantiene la struttura degli archi key = (u, v) e value = trasmittance
         self.edges_dict = edges
         # Estraggo i valori degli edges
@@ -24,7 +26,7 @@ class Genetic_algorithm:
         # Lunghezza della popolazione
         self.population_len = population_len
         # Genero n soluzioni uguali
-        self.population = [Genetic_solution(self.id_node, self.edges, self.real_vect) for _ in range(population_len)]
+        self.population = [Genetic_solution(self.id_nodes, self.edges, self.real_vect) for _ in range(population_len)]
 
         # Popolazione clonata
         self.population_cloned = []
@@ -66,11 +68,11 @@ class Genetic_algorithm:
             child2_edges = np.concatenate((temp_population[idx[i+1]].edges[:cut], temp_population[idx[i]].edges[cut:]))
 
             # Creo le soluzioni figli
-            child1_sol = Genetic_solution(self.id_node, child1_edges, self.real_vect)
+            child1_sol = Genetic_solution(self.id_nodes, child1_edges, self.real_vect)
             child1_sol.compute_fitness(self.edges_dict)
             self.population_cross.append(child1_sol)
 
-            child2_sol = Genetic_solution(self.id_node, child2_edges, self.real_vect)
+            child2_sol = Genetic_solution(self.id_nodes, child2_edges, self.real_vect)
             child2_sol.compute_fitness(self.edges_dict)
             self.population_cross.append(child2_sol)
 
@@ -118,4 +120,4 @@ class Genetic_algorithm:
             for p in self.population:
                 print(p.fitness)
 
-            self.population[0].propagation.export_graph('genetic_graph2233.gexf')
+            self.population[0].propagation.export_graph('genetic_graph.gexf')

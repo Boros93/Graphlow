@@ -1,12 +1,13 @@
 import numpy as np 
 import math
+import utility
 
 from Propagation import Propagation
 
 class Genetic_solution:
-    def __init__(self, id_node: str, edges: list, real_vect, max_age = 5):
+    def __init__(self, id_nodes: list, edges: list, real_vect: list, max_age = 5):
         # Id node
-        self.id_node = id_node
+        self.id_nodes = id_nodes
         # Lista dei pesi degli archi
         self.edges = np.array(edges)
         # Real vector
@@ -20,18 +21,19 @@ class Genetic_solution:
         self.age = np.random.randint(0, (2 * max_age) / 3)
 
         self.propagation = Propagation()
+        self.propagation.set_Graph(utility.load_graph("genetic_graph.gexf"))
 
-    def __fbeta_score(self, tri_vect):
+    def __fbeta_score(self, tri_vect, idx: int):
         tp, fp, tn, fn = 0, 0, 0, 0
 
-        for i in range(0, len(self.real_vect)):
-            if tri_vect[i] > 0 and self.real_vect[i] == 1:  # tp
+        for i in range(0, len(self.real_vect[idx])):
+            if tri_vect[i] > 0 and self.real_vect[idx][i] == 1:  # tp
                 tp += 1
-            if tri_vect[i] > 0 and self.real_vect[i] == 0:  # fp
+            if tri_vect[i] > 0 and self.real_vect[idx][i] == 0:  # fp
                 fp += 1
-            if tri_vect[i] == 0 and self.real_vect[i] == 0:   # tn
+            if tri_vect[i] == 0 and self.real_vect[idx][i] == 0:   # tn
                 tn += 1
-            if tri_vect[i] == 0 and self.real_vect[i] == 1:   # fn 
+            if tri_vect[i] == 0 and self.real_vect[idx][i] == 1:   # fn 
                 fn += 1
 
         ppv = tp / (tp + fp)
@@ -56,9 +58,13 @@ class Genetic_solution:
         # Aggiornare i pesi
         self.__update_weights(edges_dict)
         # Trivector
-        tri_vect = self.propagation.trivector_train(self.id_node)
-        # f_beta score
-        self.fitness = self.__fbeta_score(tri_vect)
+        fit_list = []
+        for i in range(len(self.id_nodes)):
+            tri_vect = self.propagation.trivector_train(self.id_nodes[i])
+            # f_beta score
+            fit_list.append(self.__fbeta_score(tri_vect, i))
+        
+        self.fitness = min(fit_list)
 
     def hypermutation(self, rho):
         alpha = math.exp(-rho * self.fitness)
