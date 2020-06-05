@@ -1,4 +1,5 @@
 import utility
+import csv
 
 # numero di righe della griglia dei vent
 ROWS_VENT = 73
@@ -17,8 +18,24 @@ EASTING_MAX_DEM = 520000
 # ampiezza in metri quadrati di ogni cella della griglia DEM
 STEP_DEM = 20
 
-# Restituisce l'id del nodo, dato un id di un vent
-def get_node_from_idvent(id_vent):
+def get_node_from_idvent(id_vent: str):
+    filename = "Data/node_vent_csv.csv"
+    with open(filename) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        for row in csv_reader:
+            if row[0] == id_vent:
+                return row[1]
+
+def get_vent_from_idnode(id_node: str):
+    filename = "Data/node_vent_csv.csv"
+    with open(filename) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=',')
+        for row in csv_reader:
+            if row[1] == id_node:
+                return row[0]
+
+# Restituisce l'id del nodo, dato un id di un vent controllando le coordinate all'interno del grafo
+def get_node_from_idvent_in_graph(id_vent):
     # La griglia dei vent parte da 1
     id_vent = int(id_vent) - 1
     # Ritorna le coordinate del vent nel DEM

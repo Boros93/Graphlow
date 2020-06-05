@@ -1,6 +1,7 @@
 import numpy as np 
 import math
 import utility
+import os
 
 from Propagation import Propagation
 
@@ -21,7 +22,8 @@ class Genetic_solution:
         self.age = np.random.randint(0, (2 * max_age) / 3)
 
         self.propagation = Propagation()
-        self.propagation.set_Graph(utility.load_graph("genetic_graph.gexf"))
+        if os.path.isfile("graph_gexf/genetic_graph.gexf"):
+            self.propagation.set_Graph(utility.load_graph("genetic_graph.gexf"))
 
     def __fbeta_score(self, tri_vect, idx: int):
         tp, fp, tn, fn = 0, 0, 0, 0
@@ -64,7 +66,7 @@ class Genetic_solution:
             # f_beta score
             fit_list.append(self.__fbeta_score(tri_vect, i))
         
-        self.fitness = min(fit_list)
+        self.fitness = np.mean(fit_list)
 
     def hypermutation(self, rho):
         alpha = math.exp(-rho * self.fitness)

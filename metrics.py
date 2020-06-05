@@ -2,6 +2,7 @@ import os
 import utility
 import map_creator as mc
 from scipy import sparse
+from Propagation import Propagation
 
 # Tabella della verità 
 #    | eruption | real  |
@@ -120,3 +121,27 @@ def count_invaded_cities(G):
             n_invaded_cities += 1
             risk += G.nodes[u]['current_flow'] * G.nodes[u]['is_city']
     return n_invaded_cities, risk
+
+def get_ppv_list(G, vent_list):
+    p = Propagation()
+    p.set_Graph(G)
+
+    ppv_list = []
+    for vent in vent_list:
+        sparse_matrix = p.trivector([vent])
+        ppv = compute([vent], "", sparse_matrix, G)[0]
+        ppv_list.append(ppv)
+
+    return ppv_list
+
+def get_tpr_list(G, vent_list):
+    p = Propagation()
+    p.set_Graph(G)
+
+    tpr_list = []
+    for vent in vent_list:
+        sparse_matrix = p.trivector([vent])
+        tpr = compute([vent], "", sparse_matrix, G)[2]
+        tpr_list.append(tpr)
+
+    return tpr_list

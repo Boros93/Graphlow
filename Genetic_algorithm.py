@@ -1,10 +1,11 @@
 from Genetic_solution import Genetic_solution
 from copy import copy
+from datetime import datetime
 
 import numpy as np 
 
 class Genetic_algorithm:
-    def __init__(self, id_vents:list, id_nodes: list, edges: dict, population_len = 5, rho = 8):
+    def __init__(self, id_vents: list, id_nodes: list, edges: dict, population_len, rho):
         
         # Preso dal csv
         self.id_vents = id_vents
@@ -41,6 +42,10 @@ class Genetic_algorithm:
             self.population[i].hypermutation(self.rho)
             self.population[i].compute_fitness(self.edges_dict)
 
+    def __increment_age(self):
+        for i in range(len(self.population)):
+            self.population[i].increment_age()
+
     def __clone(self):
         self.population_cloned = []
         for i in range(self.population_len):
@@ -76,33 +81,36 @@ class Genetic_algorithm:
             child2_sol.compute_fitness(self.edges_dict)
             self.population_cross.append(child2_sol)
 
-    def __increment_age(self):
-        for i in range(len(self.population)):
-            self.population[i].increment_age()
-
     def __selection(self):
         # Seleziono le population_len soluzioni migliori
-        temp_population = self.population + self.population_cloned + self.population_cross
+        temp_population = self.population + self.population_cloned # + self.population_cross
         # Ordinamento array
         temp_population.sort(key = lambda s : s.fitness, reverse=True)
 
         # Aggiorno la popolazione
-        self.population = temp_population[:self.population_len]
+        #self.population = temp_population[:self.population_len]
 
-        #self.population = [temp_population[0]]
-        #max_age = temp_population[0].max_age
-        #i = 1
-        #while(len(self.population) < self.population_len):
-        #    if temp_population[i].age < max_age:
-        #        self.population.append(temp_population[i])
-        #    i += 1
+        # Salvo la best solution
+        self.population = [temp_population[0]]
+        # Mi prendo un riferimento a max_age
+        max_age = temp_population[0].max_age
+
+        # Salvo le |population_len| soluzioni migliori solamente se rispettano l'età consentita 
+        i = 1
+        while(len(self.population) < self.population_len):
+            if temp_population[i].age < max_age:
+                self.population.append(temp_population[i])
+            i += 1
     
     def start(self, epochs):
+        # Costruzione file di log
+        now = datetime.now().strftime("%y-%m-%d_(%H-%M)")
+        f = open("log/genetic_train_" + str(now) + ".txt", 'w')
         for e in range(epochs):
             print("Epoch:", e)
             # Incremento età delle soluzioni
             print("Aging...")
-            #self.__increment_age()
+            self.__increment_age()
             # Cloning (lista 2 volte population_len)
             print("Cloning...")
             self.__clone()
@@ -110,14 +118,17 @@ class Genetic_algorithm:
             print("Hypermutation...")
             self.__hypermutation()
             # Crossover su entrambe le popolazioni
-            print("Crossover...")
-            self.__crossover()
+            #print("Crossover...")
+            #self.__crossover()
             # Selezione nuova popolazione
             print("Selection...")
             self.__selection()
             # Stampa le best fitness
             print("Printing...")
+            f.write("Epoch " + str(e) + ": " + str(self.population[0].fitness) + "\n")
             for p in self.population:
                 print(p.fitness)
 
             self.population[0].propagation.export_graph('genetic_graph.gexf')
+        
+        f.close()

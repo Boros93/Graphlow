@@ -1,5 +1,4 @@
 import numpy as np
-from region import Region
 import csv
 import networkx as nx
 import os
@@ -7,9 +6,10 @@ import graph_algorithm as ga
 import graph_maker as gm
 import map_creator as mc
 import conversion
+import metrics
+from region import Region
 from scipy import sparse
 from glob import glob
-
 
 # Metodo per caricare una linked map da file CSV
 def load_csv_map(shapes, map_filename):
@@ -76,7 +76,7 @@ def graph_to_matrix(G):
     
     np.save("graph_matrix.npy", M)
 
-# genera una matrice sparsa che rappresenta l'unione delle simulazioni MAGFLOW della bocca specificata
+# Genera una matrice sparsa che rappresenta l'unione delle simulazioni MAGFLOW della bocca specificata
 def unify_sims(id_vents: list, char, neighbor):
     simspath = "Data/simulations/"
 
@@ -141,7 +141,7 @@ def create_row_table(metric_list, vent):
         print("| " + str(metric), end = " ")
     print("|")
 
-#dato l'id di un nodo, ritorna l'id del vent
+# Dato l'id di un nodo, ritorna l'id del vent
 def node_vent_csv():
     vent_list = []
     file_list = glob("Data/simulations/*")
@@ -156,7 +156,7 @@ def node_vent_csv():
         filewriter.writerow(['id_vent', 'id_node'])
         for v in vent_list:
             # scrive la linea id_vent,id_node
-            id_node = conversion.get_node_from_idvent(v)
+            id_node = conversion.get_node_from_idvent_in_graph(v)
             filewriter.writerow([v, id_node])
 
 def create_vent_dict():
@@ -171,7 +171,48 @@ def create_vent_dict():
                 vent_node_dict[row[0]] = row[1]
     return vent_node_dict
 
-# calcolo del vicinato di moore o di neumann
+# Genera una scacchiera di nodi (vent) di dimensione = size e passo = step data una coordinata iniziale
+def get_node_vent_chessboard(x, y, size, step):
+    node_matrix = np.load("Data/node_matrix.npy")
+    vent_matrix = np.load("Data/vent_matrix.npy")
+    
+    if (x + size) > node_matrix.shape[0]:
+        print("Error: x + size exceed matrix number of rows!")
+        return
+    if (y + size) > node_matrix.shape[1]:
+        print("Error: y + size exceed matrix number of cols!")
+        return
+
+    node_list = []
+    vent_list = []
+    for i in range(0, size):
+        if i % 2 == 0:
+            j_start = 0
+        else:
+            j_start = int(step/2)
+
+        for j in range(j_start, size, step):
+            vent = vent_matrix[x + i][y + j]
+            if vent != 0:
+                node_list.append(str(node_matrix[x + i][y + j]))
+                vent_list.append(str(vent))
+    
+    return node_list, vent_list
+
+def visualize_and_metrics(id_vents: list, propagation_method, neighbor, sparse_matrix, G, header):
+    # Esportazione in ASCII Grid
+    mc.ascii_creator(id_vents, propagation_method + neighbor, sparse_matrix)
+    # Calcolo delle metriche
+    metric_list = metrics.compute(id_vents, neighbor, sparse_matrix, G)
+    # Intabellamento
+    # Scrittura header tabella
+    if not header == True:  
+        init_table(propagation_method)
+    create_row_table(metric_list, id_vents[0])
+    
+    return metric_list
+
+# Calcolo del vicinato di moore o di neumann
 def get_neighborhood(id_vent, neighbor_method, radius):
     radius = int(radius)
     id_vent = int(id_vent)

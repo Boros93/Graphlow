@@ -100,7 +100,7 @@ class Propagation:
     def trivector(self, id_vents: list):
         roots = []
         for id_vent in id_vents:    
-            roots.append(conversion.get_node_from_idvent(int(id_vent)))
+            roots.append(conversion.get_node_from_idvent(id_vent))
         
         # Inizializzazione dei tre vettori temporali
         vect1 = np.zeros(len(self.G.nodes()))
@@ -185,7 +185,7 @@ class Propagation:
         volume_remaining = self.eru_volume
         node_to_visit=[]
         # Inizializzazione root
-        root = conversion.get_node_from_idvent(int(id_vent))
+        root = conversion.get_node_from_idvent(id_vent)
         node_to_visit.append(root)
         self.G.nodes[root]["current_flow"] = volume_per_day
         volume_remaining -= volume_per_day
@@ -252,7 +252,7 @@ class Propagation:
 
     def montecarlo(self, id_vents: list):
         id_vent = id_vents[0]
-        root = conversion.get_node_from_idvent(int(id_vent))
+        root = conversion.get_node_from_idvent(id_vent)
         # Si tiene conto dei nodi invasi, così da resettarli all'inizio della nuova epoca
         node_to_restart = []
         for ep in range(0, self.prob_epoch):
@@ -369,9 +369,6 @@ class Propagation:
 
     def get_Graph(self):
         return self.G
-
-    def get_graph_vect(self) -> np.ndarray:
-        return self.graph_vect
 
     def cut_edges(self, edges_list: list):
         for u, v in self.G.edges():

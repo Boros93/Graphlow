@@ -1,9 +1,8 @@
 import numpy as np
-from region import Region
 import csv
 import utility
 import queue
-
+from region import Region
 
 def downsampling_map(scale_factor, filename):
     # Inizializzazione scaled map vuota
@@ -28,7 +27,6 @@ def downsampling_map(scale_factor, filename):
                 print("line count = " , line_count)
 
     return scaled_map
-
 
 def aggregate(scaled_map):
     red = queue.Queue()
@@ -60,12 +58,10 @@ def aggregate(scaled_map):
             node_list.append([region_list, near_node_list])
     return node_list
 
-
 def is_mergeable(reg_a, reg_b):
     if reg_a.sim == reg_b.sim:
         return True
     return False
-
 
 def get_neighbors(coord, scaled_map_x, scaled_map_y):
     neighbors = []

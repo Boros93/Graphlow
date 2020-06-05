@@ -3,11 +3,11 @@ import processing as prx
 import utility 
 import init_map 
 import math
-from statistics import median
 import os
 import numpy as np
 import conversion
 import map_creator as mc
+from statistics import median
 
 def create_graph(l_map):
     G = nx.DiGraph()

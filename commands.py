@@ -12,91 +12,11 @@ import re
 import math
 import glob
 import os
-from utility import graph_to_matrix
-from utility import load_graph
+import seaborn as sns
 from scipy import sparse
 from Propagation import Propagation
-
-# AGGIUNGERE I NUOVI COMANDI
-# FIXARE LE INTERFACCE
-def man():
-    print(r"""
-    - exit: is used to quit the program. Just type 'exit' in command line.
-    - eruption: is used to launch a real time simulation. To begin an eruption it needs some parameters, in this order:
-            id vent(int)    <- integer between 4 and 4814 which indicates the id of vent.
-                               You can find it in 'Data/simulations/' after 'NotN_vent_' string.
-            volume(int)     <- this is the amount of magma of your eruption, default 1000.
-            n_days(int)     <- this parameter indicate the eruption duration(in days), default 7.
-            alpha(float)    <- parameter to fix magma forwarding, default 0.125
-            threshold(int)  <- another parameter to fix magma forwarding, default 1
-                               example of usage:  eruption 2233 1000 7 0.11 10
-
-    - showsim: is used to show a simulation from MAGFLOW. It needs the follow parameters:
-            id vent(int)    <- integer between 4 and 4814 which indicates the id of vent. 
-                               You can find it in 'Data/simulations/' after 'NotN_vent_' string.
-            class(int)      <- integer in range 1 to 6 that indicates the eruption class. 
-                               An eruption class is a combination of volume and duration of eruption. default 1
-                               example of usage: showsim 2233 6
-    """)
-
-def show_sim(spec=None, real_class = 1):
-    if spec is None:
-        raise ValueError("must specify an id_vent")
-
-    id_vents = set()
-    propagation = Propagation()
-
-    # accept a comma-separated list of specifications
-    # each vent specification can be either a single vent, or a vent neighborhod specification
-    # moore(vent[,r]) specifies the Moore neighborhood of radius r
-    # neumann(vent[,r]) specifies the von Neumann neighborhood of radius r
-    # default value for r is 1
-    while spec:
-        # match groups:
-        # an optional initial comma, with surrounding space
-        # moore( or neumann(, storing moore or neumann in the neib group
-        # digitis (vent id)
-        # a comma, optional whitespace, the radius (optionally) and the closing ) (obligatoy), if neib was specified
-        match = re.match("(?:\s*,\s*)?(?:(?P<neib>moore|neumann)\()?(?P<id>\d+)(?(neib)(?:,\s*(?P<radius>\d+))?\))", spec)
-        if not match:
-            raise ValueError("invalid vent spec '{}'".format(spec))
-        neib = match.group('neib')
-        radius = int(match.group('radius') or 1)
-        vent = int(match.group('id'))
-        # TODO FIXME neighbor computations aren't valid at the edge of the vent grid
-        if neib is None:
-            id_vents.add(vent)
-        elif neib == 'moore':
-            for r in range(-radius, radius+1):
-                for c in range(-radius, radius+1):
-                    id_vents.add(vent + r*73 + c)
-        elif neib == 'neumann':
-            for r in range(-radius, radius+1):
-                for c in range(-radius, radius+1):
-                    if abs(r)+abs(c) <= radius:
-                        id_vents.add(vent + r*73 + c)
-        # match next
-        spec = spec[match.end():]
-
-    id_vents = [ str(v) for v in id_vents ]
-    id_vents.sort()
-    print(id_vents)
-
-    if real_class == "0":
-        # Qui si unificano le simulazioni, si esportano come matrici sparse e si creano gli ASCII
-        sparse_matrix_c, sparse_matrix_d = propagation.real(id_vents, real_class)
-        ascii_vents = "_".join(id_vents)
-        mc.ascii_creator(ascii_vents, "ucsim", sparse_matrix_c)
-        mc.ascii_creator(ascii_vents, "udsim", sparse_matrix_d)
-        return
-
-    # Esecuzione simulazione --single vent only
-    if len(id_vents) != 1:
-        raise ValueError("multiple vents not supported for class != 0")
-    id_vent = id_vents[0]
-    sparse_matrix = propagation.real(id_vent, real_class)
-    # Esportazione in ASCII Grid
-    mc.ascii_creator(id_vent, "real_" + real_class, sparse_matrix)
+from Genetic_algorithm import Genetic_algorithm
+from matplotlib import pyplot as plt
 
 def realsim_cmd(id_vent: str, real_class: str, neighbor_method: str, radius: int):
     propagation = Propagation()
@@ -124,11 +44,7 @@ def realsim_cmd(id_vent: str, real_class: str, neighbor_method: str, radius: int
         mc.ascii_creator(id_vents, neighbor + real_class, sparse_matrix)
         return
 
-def node_from_idvent(id_vent):
-    node = conversion.get_node_from_idvent(id_vent)
-    print(node)
-
-# Sistemare
+# Sistemare - per il mio amico Pavel. Se sono Pavel allora so già tutto!
 def compare(*parameter_list):
     # Primo parametro corrisponde al fatto che il metodo sia random o scelto dall'utente
     vent_list, setting = [], []
@@ -205,14 +121,8 @@ def choose_setting():
     setting_list.append([epoch, second_chance])
 
     return setting_list
+# Fine argomenti tesina amico Pavel.
 
-# il comando esegue il metodo di propagazione trivector. supporta l'esecuzione su una sola bocca
-# oppure su più bocche.
-# per eseguire il comando a bocca singola specificare id_vent, threshold (se si desidera specificarne una) 
-# ESEMPIO DI UTILIZZO: trivector 2233
-# per eseguire il comando a bocca multipla specificare un id_vent, un metodo di determinazione del vicinato 
-# e un raggio.
-# ESEMPIO DI UTILIZZO: trivector 2233 moore 2
 def trivector_cmd(id_vent: str, neighbor_method: str, radius: int, threshold: float, header = False):
     propagation = Propagation()
     # Setta i parametri
@@ -234,7 +144,7 @@ def trivector_cmd(id_vent: str, neighbor_method: str, radius: int, threshold: fl
     sparse_matrix = propagation.trivector(id_vents)
     # Esportazione in ASCII e calcolo metriche
     G = propagation.get_Graph()
-    visualize_and_metrics(id_vents, propagation_method, neighbor, sparse_matrix, G, header)
+    utility.visualize_and_metrics(id_vents, propagation_method, neighbor, sparse_matrix, G, header)
 
 def eruption_cmd(id_vent, volume = -1, n_days = -1, threshold = -1, header = False):
     if id_vent == 0:
@@ -246,7 +156,7 @@ def eruption_cmd(id_vent, volume = -1, n_days = -1, threshold = -1, header = Fal
     sparse_matrix = propagation.eruption(id_vent)
     # Esportazione in ASCII e calcolo metriche
     G = propagation.get_Graph()
-    visualize_and_metrics(id_vent, "eruption", sparse_matrix, G, header)
+    utility.visualize_and_metrics(id_vent, "eruption", sparse_matrix, G, header)
 
 def montecarlo_cmd(id_vent, n_epochs = -1, second_chance = -1, header = False):
     if id_vent == 0:
@@ -258,20 +168,7 @@ def montecarlo_cmd(id_vent, n_epochs = -1, second_chance = -1, header = False):
     sparse_matrix = propagation.trivector(id_vent)
     # Esportazione in ASCII e calcolo metriche
     G = propagation.get_Graph()
-    visualize_and_metrics(id_vent, "montecarlo", sparse_matrix, G, header)
-
-def visualize_and_metrics(id_vents: list, propagation_method, neighbor, sparse_matrix, G, header):
-    # Esportazione in ASCII Grid
-    mc.ascii_creator(id_vents, propagation_method + neighbor, sparse_matrix)
-    # Calcolo delle metriche
-    metric_list = metrics.compute(id_vents, neighbor, sparse_matrix, G)
-    # Intabellamento
-    # Scrittura header tabella
-    if not header == True:  
-        utility.init_table(propagation_method)
-    utility.create_row_table(metric_list, id_vents[0])
-    
-    return metric_list
+    utility.visualize_and_metrics(id_vent, "montecarlo", sparse_matrix, G, header)
 
 def test(id_vent, distance = 4):
     propagation = Propagation()
@@ -310,7 +207,7 @@ def test(id_vent, distance = 4):
         for i in range(distance, len(path)-distance):
             edge_id = (path[i-1], path[i])
             if edge_id not in cutted_edges:
-                propagation.set_Graph(load_graph())
+                propagation.set_Graph(utility.load_graph())
                 propagation.cut_edges([[path[i-1], path[i]]])
                 sparse_matrix = propagation.trivector([id_vent])
                 G = propagation.get_Graph()
@@ -321,7 +218,7 @@ def test(id_vent, distance = 4):
     min_risk = min(cutted_edges, key=cutted_edges.get)
     print(min_risk)
 
-def autocut_cmd(id_vent: str, distance: int, neighbor_method: str, radius: int, dimension: int, mode: str, measure: str):
+def autocut_cmd(id_vent: str, distance: int, neighbor_method: str, radius: int, dimension: int, mode: str):
     propagation = Propagation()
     id_vents = []
     propagation_method = "trivector"
@@ -340,19 +237,19 @@ def autocut_cmd(id_vent: str, distance: int, neighbor_method: str, radius: int, 
     no_cutted_sparse = propagation.trivector(id_vents)
     G = propagation.get_Graph()
     # Decommentare se si vuole stampare le metriche del trivector senza taglio 
-    # visualize_and_metrics(id_vents, propagation_method, no_cutted_sparse, G, False)
+    # utility.visualize_and_metrics(id_vents, propagation_method, no_cutted_sparse, G, False)
 
     # selezione degli archi da tagliare
-    list_edges = ga.get_edges_to_cut(G, id_vents, distance, dimension, mode, measure)
+    list_edges = ga.get_edges_to_cut(G, id_vents, distance, dimension, mode)
 
-    propagation.set_Graph(load_graph())
+    propagation.set_Graph(utility.load_graph())
     # taglio archi selezionati
     propagation.cut_edges(list_edges)
 
     # esecuzione trivector dopo il taglio degli archi
     cutted_sparse = propagation.trivector(id_vents)
     G = propagation.get_Graph()
-    visualize_and_metrics(id_vents, propagation_method, neighbor, cutted_sparse, G, False)
+    utility.visualize_and_metrics(id_vents, propagation_method, neighbor, cutted_sparse, G, False)
     mc.ascii_barrier(id_vent, propagation_method + neighbor, list_edges)
 
 def cut_cmd(id_vent, list_edges: list, neighbor_method, radius):
@@ -377,61 +274,80 @@ def cut_cmd(id_vent, list_edges: list, neighbor_method, radius):
     # Esportazione in ASCII e calcolo metriche
     sparse_matrix = propagation.trivector(id_vents)
     G = propagation.get_Graph()
-    visualize_and_metrics(id_vents, propagation_method, neighbor, sparse_matrix, G, False)
+    utility.visualize_and_metrics(id_vents, propagation_method, neighbor, sparse_matrix, G, False)
     mc.ascii_barrier(id_vent, propagation_method + neighbor, edges_to_cut)
 
-def weight_adjustment():
-    # Lista di vents
-    vents = []
-    file_list = glob.glob("Data/real_vectors/*")
-    for f in file_list:
-        vents.append(f[18:-4])
-    
-    # Dizionario vent, node
-    vent_node_dict = utility.create_vent_dict()
+def genetic_train_cmd(id_vent: int, size: int, step: int, population_len: int, rho: int, epochs: int):
+    # Calcolo le coordinate a partire dal vent
+    x_coord, y_coord = conversion.vent_in_dem(id_vent-1)
+    # Lista vents/nodes del sottografo
+    id_nodes, id_vents = utility.get_node_vent_chessboard(int(x_coord/25), int(y_coord/25), size, step)
 
-    p = Propagation()
-    if os.path.exists("graph_gexf/trained_graphlow.gexf"):
-        p.set_Graph(load_graph('trained_graphlow.gexf'))
+    print("Calcolo chessboard terminato!")
 
-    for e in range(100):
-        print("Epoca: ", e)
-        global_error = np.zeros((5820,))
-        idx = np.random.permutation(len(vents))
-        for i in idx[:500]:
-            print(vents[i])
-            node = vent_node_dict[vents[i]]
-            out = p.trivector_train(node)
-            y = np.load("Data/real_vectors/" + vents[i] + ".npy")
-            error = out - y
-            global_error += error
-        mean_error = global_error / len(vents)
+    filename = "graph_gexf/subgraphs/sg_" + str(id_vent) + "_" + str(size) + "_" + str(step) + ".gexf"
+    if os.path.isfile(filename):
+        SG = nx.read_gexf(filename)
+    else:
+        # Creazione del vettore dei real vect
+        real_vect_list = []
+        for vent in id_vents:
+            real_vect_list.append(np.load("Data/real_vectors/" + vent + ".npy"))
+        # Creazione del vettore dei trivector
+        p = Propagation()
+        tri_vect_list = []
+        for node in id_nodes:
+            tri_vect_list.append(p.trivector_train(node))
 
-        # Calcolo dei nuovi pesi
-        G = p.get_Graph()
-        for id_node, err in enumerate(mean_error):
-            pre = list(G.predecessors(str(id_node)))
-            succ = list(G.successors(str(id_node)))
+        # Real vect e tri vect unificati
+        real_vect = np.zeros(5820)
+        tri_vect = np.zeros(5820)
+        for i in range(5820):
+            for vect in tri_vect_list:
+                if vect[i] > 0:
+                    tri_vect[i] = 1
+                    break
+            for vect in real_vect_list:
+                if vect[i] > 0:
+                    real_vect[i] = 1
+                    break
 
-            delta = float(err) / (len(pre) + len(succ))
+        # Creazione del sottografo
+        SG = ga.get_trivector_subgraph(tri_vect, real_vect)
+        nx.write_gexf(SG, filename)
 
-            for v in pre:
-                G.edges[v, str(id_node)]['prop_weight'] += delta
-            for v in succ:
-                G.edges[str(id_node), v]['prop_weight'] += delta
-        
-        # Normalizzazione pesi tra 0 e 1
-        #prop_weights = []
-        #for u, v, data in G.edges(data=True):
-        #    prop_weights.append(data['prop_weight'])
-        #min_weight = min(prop_weights)
-        #max_weight = max(prop_weights)
+    print("Init Genetic Algorithm")
+    # Algoritmo genetico
+    gen = Genetic_algorithm(id_vents, id_nodes, SG.edges, population_len, rho)
+    gen.start(epochs)
 
-        #for u, v, data in G.edges(data=True):
-        #    G.edges[u, v]['prop_weight'] = (data['prop_weight'] - min_weight) / (max_weight - min_weight) 
+def plot_train_result_cmd(metric: str, id_vent: int, size: int, step: int):
+    # Load dei grafi
+    original_graph = utility.load_graph()
+    genetic_graph = utility.load_graph(gexf_filename="genetic_graph.gexf")
+    # Lista dei vents da analizzare
+    # Calcolo le coordinate a partire dal vent
+    x_coord, y_coord = conversion.vent_in_dem(id_vent-1)
+    # Lista vents/nodes del sottografo
+    id_nodes, id_vents = utility.get_node_vent_chessboard(int(x_coord/25), int(y_coord/25), size, step)
 
-        #G = gm.normalize_prop_weight(G)
-        p.set_Graph(G)
+    print(id_nodes)
+    #id_vents.sort(key = lambda s : int(s))
 
-        # Export del grafo
-        p.export_graph('trained_graphlow.gexf')
+    if metric == "precision":
+        # Lista precision su grafo modificato
+        ppv_genetic = metrics.get_ppv_list(genetic_graph, id_vents)
+        # Lista precision su grafo originale
+        ppv_original = metrics.get_ppv_list(original_graph, id_vents)
+        sns.lineplot(id_vents, ppv_genetic)
+        sns.lineplot(id_vents, ppv_original)
+        plt.show()
+
+    elif metric == "recall":
+        # Lista recall su grafo modificato
+        tpr_genetic = metrics.get_tpr_list(genetic_graph, id_vents)
+        # Lista recall su grafo originale
+        tpr_original = metrics.get_tpr_list(original_graph, id_vents)
+        sns.lineplot(id_nodes, tpr_genetic)
+        sns.lineplot(id_nodes, tpr_original)
+        plt.show()

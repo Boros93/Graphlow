@@ -86,12 +86,11 @@ def cut_edges(G, edges_list: list):
 # dimension: Numero di archi da tagliare
 # distance: Tutti gli archi a distanza < distance dalla bocca non verranno tagliati
 # mode: Modalità di taglio [iterative/batch]
-# measure: Misura da utilizzare [trasmittance/weight] weight:ogni arco ha peso 1
-def get_edges_to_cut(G, id_vents: list, distance, dimension, mode, measure):
+def get_edges_to_cut(G, id_vents: list, distance, dimension, mode):
     # Conversione vent
     id_nodes = []
     for i in range(len(id_vents)):
-        id_nodes.append(conversion.get_node_from_idvent(int(id_vents[i])))
+        id_nodes.append(conversion.get_node_from_idvent(id_vents[i]))
 
     # Estrazione sottografo
     for i in range(len(G.nodes)):
@@ -99,15 +98,11 @@ def get_edges_to_cut(G, id_vents: list, distance, dimension, mode, measure):
             G.remove_node(str(i))
 
     # Cambio pesi
-    if measure == "trasmittance":
-        for u, v, data in G.edges(data=True):
-            if data['trasmittance'] == 0:
-                G.edges[u, v]['trasmittance'] = math.inf
-            else:
-                G.edges[u, v]['trasmittance'] = -math.log(data['trasmittance'])
-    else:
-        for u, v, data in G.edges(data=True):
-            G.edges[u, v]['weight'] = 1
+    for u, v, data in G.edges(data=True):
+        if data['trasmittance'] == 0:
+            G.edges[u, v]['trasmittance'] = math.inf
+        else:
+            G.edges[u, v]['trasmittance'] = -math.log(data['trasmittance'])
 
     # Lista nodi città
     city_nodes = []
@@ -121,8 +116,8 @@ def get_edges_to_cut(G, id_vents: list, distance, dimension, mode, measure):
             # Calcolo delle efficienze
             efficiency = {}
             for id_node in id_nodes:
-                for n in city_nodes:
-                    efficiency[(id_node, n)] = [nx.shortest_path_length(G, id_node, n, weight=measure), nx.shortest_path(G, id_node, n, weight=measure)]
+                for u in city_nodes:
+                    efficiency[(id_node, u)] = [nx.shortest_path_length(G, id_node, u, weight='trasmittance'), nx.shortest_path(G, id_node, u, weight='trasmittance')]
             
             # Conteggio archi
             edges = {}
@@ -142,15 +137,16 @@ def get_edges_to_cut(G, id_vents: list, distance, dimension, mode, measure):
             m = max(edges, key=edges.get)
             edges_to_cut.append([m[0], m[1]])
             # Aggiorno il peso
-            G.edges[m[0], m[1]][measure] = math.inf
+            G.edges[m[0], m[1]]['trasmittance'] = math.inf
 
         return edges_to_cut
+
     if mode == 'batch':
         # Calcolo delle efficienze
         efficiency = {}
         for id_node in id_nodes:
-            for n in city_nodes:
-                efficiency[(id_node, n)] = [nx.shortest_path_length(G, id_node, n, weight=measure), nx.shortest_path(G, id_node, n, weight=measure)]
+            for u in city_nodes:
+                efficiency[(id_node, u)] = [nx.shortest_path_length(G, id_node, u, weight='trasmittance'), nx.shortest_path(G, id_node, u, weight='trasmittance')]
         
         # Conteggio archi
         edges = {}

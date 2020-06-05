@@ -5,22 +5,24 @@ import os
 import networkx as nx
 import glob
 import processing as prx
+
 # Set parameters
 scale_factor = 25
 x_shape = int(2275/scale_factor)
 y_shape = int(1875/scale_factor)
 filename = "graphlow"
 
-# cariga il grafo se esiste, altrimenti lo crea. 
+# Carica il grafo se esiste, altrimenti lo crea. 
 if os.path.exists("graph_gexf/"+filename+".gexf"):
     G = nx.read_gexf("graph_gexf/"+filename+".gexf")
 else: 
     # Carica la linked map csv
-    if os.path.exists("./CSVMaps/scaled_map91x75.csv"):    
+    if os.path.exists("./CSVMaps/scaled_map91x75.csv"):
         our_map = utility.load_csv_map(shapes=[x_shape, y_shape], map_filename = "./CSVMaps/scaled_map91x75.csv")
     else: 
         our_map = prx.downsampling_map(scale_factor, filename='CSVMaps/scaled_map91x75.csv')
         utility.write_in_csv("scaled_map91x75.csv", our_map)
+        
     G = gm.create_graph(our_map)
     G = gm.export_graph(G, filename + ".gexf", is_first_time = True)
     # set di trasmit_rank dei nodi

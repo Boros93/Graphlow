@@ -1,7 +1,8 @@
 import numpy as np
 import utility
-from PIL import Image
 import conversion
+from PIL import Image
+
 # Visualizza la numerosità delle colate in ogni cella
 def create_image_from_map(l_map):
     img = np.zeros([l_map.shape[0], l_map.shape[1]], dtype=np.uint8)

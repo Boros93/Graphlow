@@ -26,8 +26,6 @@ g.start(epochs=100)
 
  """
 
-
-
 def get_vent_chessboard(x, y, size = 10, step = 4):
     node_matrix = np.load("Data/node_matrix.npy")
     node_list = []
@@ -45,12 +43,8 @@ def get_vent_chessboard(x, y, size = 10, step = 4):
 vent_matrix = np.load("Data/vent_matrix.npy")
 
 node_list = get_vent_chessboard(0, 1)
-print(node_list, len(node_list))
-G = utility.load_graph()
-for node in node_list:
-    G.nodes[str(node)]["current_flow"] = 1
 
-nx.write_gexf(G, "grafo.gexf")
+G = utility.load_graph()
 
 """ vents = [1503, 1429, 1431, 1575, 1577, 
     1870, 1796, 1798, 1942, 1944,
