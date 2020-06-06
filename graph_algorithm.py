@@ -8,6 +8,22 @@ import conversion
 import map_creator as mc
 import networkx as nx 
 
+def delete_graph_attribute(G, attribute: str, in_node: bool):
+    if in_node:
+        for u in G.nodes():
+            del G.nodes[u][attribute]
+    else:
+        for u,v in G.edges():
+            del G.edges[u][v][attribute]
+    return G
+
+def add_graph_attribute(G, attribute: str, in_node: bool, values: dict):
+    if in_node:
+        nx.set_node_attributes(G, values, attribute)
+    else:
+        nx.set_edge_attributes(G, values, attribute)
+    return G
+
 def set_node_rank(G, not_n_filename):
     # inserisco nella lista il nodo per poter azzerarne il rango alla fine.
     not_n_nodes = []
