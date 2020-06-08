@@ -6,11 +6,9 @@ import utility
 import networkx as nx
 from scipy import sparse
 
-G = utility.load_graph()
-priority = {}
+G = utility.load_graph("graphlow.gexf")
 for u in G.nodes():
-    priority[u] = G.nodes[u]["is_city"]
+    if "Ragalna" in G.nodes[u]['city_names']:
+        G.nodes[u]['priority'] = .5
 
-G_new = ga.delete_graph_attribute(G, "is_city", True)
-G_new = ga.add_graph_attribute(G, "priority", True, priority)
-nx.write_gexf(G_new, "graph_gexf/graphlow_new.gexf")
+nx.write_gexf(G, "ragalna.gexf")

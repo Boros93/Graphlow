@@ -38,4 +38,6 @@ nn/dataset/*
 
 CSVMaps/linked_map.csv
 
+log/*
+
 *.pyc

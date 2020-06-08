@@ -20,7 +20,7 @@ class Genetic_algorithm:
         # Estraggo i valori degli edges
         self.edges = []
         for u, v, data in self.edges_dict(data=True):
-            self.edges.append(data['trasmittance'])
+            self.edges.append(data['prop_weight'])
 
         # Parametro per l'hypermutation: più è alto meno mutazioni si fanno
         self.rho = rho

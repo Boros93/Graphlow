@@ -123,7 +123,7 @@ def get_edges_to_cut(G, id_vents: list, distance, dimension, mode):
     # Lista nodi città
     city_nodes = []
     for n in G.nodes:
-        if G.nodes[n]['is_city'] > 0:
+        if G.nodes[n]['priority'] > 0:
             city_nodes.append(n)
     
     edges_to_cut = []
@@ -133,21 +133,22 @@ def get_edges_to_cut(G, id_vents: list, distance, dimension, mode):
             efficiency = {}
             for id_node in id_nodes:
                 for u in city_nodes:
-                    efficiency[(id_node, u)] = [nx.shortest_path_length(G, id_node, u, weight='trasmittance'), nx.shortest_path(G, id_node, u, weight='trasmittance')]
+                    efficiency[(id_node, u)] = nx.shortest_path(G, id_node, u, weight='trasmittance')
             
             # Conteggio archi
             edges = {}
             for key in efficiency:
                 # Scorro i paths
-                path = efficiency[key][1]
+                path = efficiency[key]
                 for i in range(distance, len(path)):
                     edge_id = (path[i-1], path[i])
                     # Se esiste la chiave la incremento altrimenti
                     # la aggiungo al dizionario
+                    priority = G.nodes[key[1]]["priority"]
                     if edge_id in edges:
-                        edges[edge_id] += 1
+                        edges[edge_id] += priority
                     else:
-                        edges[edge_id] = 1
+                        edges[edge_id] = priority
             
             # Prendo l'arco con più occorrenze
             m = max(edges, key=edges.get)
@@ -162,13 +163,13 @@ def get_edges_to_cut(G, id_vents: list, distance, dimension, mode):
         efficiency = {}
         for id_node in id_nodes:
             for u in city_nodes:
-                efficiency[(id_node, u)] = [nx.shortest_path_length(G, id_node, u, weight='trasmittance'), nx.shortest_path(G, id_node, u, weight='trasmittance')]
+                efficiency[(id_node, u)] = nx.shortest_path(G, id_node, u, weight='trasmittance')
         
         # Conteggio archi
         edges = {}
         for key in efficiency:
             # Scorro i paths
-            path = efficiency[key][1]
+            path = efficiency[key]
             for i in range(distance, len(path)):
                 edge_id = (path[i-1], path[i])
                 # Se esiste la chiave la incremento altrimenti

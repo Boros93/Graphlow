@@ -30,7 +30,7 @@ def graph_to_UTM(G, filename):
     for u, data in G.nodes(data = True):
         for coords in data["coord_regions"].split("|"):
             coord_x, coord_y = conversion.cast_coord_attr(coords)
-            utm_map[coord_x][coord_y] = data["is_city"]
+            utm_map[coord_x][coord_y] = data["priority"]
     # scrittura header
     with open(filename, 'w') as utmfile:
         for i in range(0, len(header)):

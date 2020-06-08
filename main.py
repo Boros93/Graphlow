@@ -21,6 +21,7 @@ def parse_input():
     trivector_parser.add_argument('-t', '--threshold', type=float, default=0.001, help="Trivector threshold. Default=0.001")
     trivector_parser.add_argument('-neigh', '--neighborhood', type=str, choices=['moore', 'neumann'], default=None, help='Neighborhood of Vent. Default=None')
     trivector_parser.add_argument('-r', '--radius', type=int, default=1, help="Radius of the neighborhood. Default=1")
+    trivector_parser.add_argument('-g', '--graph', type=str, default="graphlow.gexf", help="Graph to use. Default=graphlow.gexf")
 
     # Autocut
     autocut_parser = subparser.add_parser('autocut')
@@ -59,7 +60,7 @@ def parse_input():
 
 def switch_command(args):
     if args.command == "trivector":
-        commands.trivector_cmd(id_vent=args.id_vent, neighbor_method=args.neighborhood, radius=args.radius, threshold=args.threshold)
+        commands.trivector_cmd(id_vent=args.id_vent, neighbor_method=args.neighborhood, radius=args.radius, threshold=args.threshold, graph=args.graph)
     elif args.command == "autocut":
         commands.autocut_cmd(id_vent=args.id_vent, distance=args.distance, 
                                 neighbor_method=args.neighborhood, dimension=args.dimension, mode=args.mode, radius=args.radius)

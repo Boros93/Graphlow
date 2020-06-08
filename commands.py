@@ -123,9 +123,13 @@ def choose_setting():
     return setting_list
 # Fine argomenti tesina amico Pavel.
 
-def trivector_cmd(id_vent: str, neighbor_method: str, radius: int, threshold: float, header = False):
+def trivector_cmd(id_vent: str, neighbor_method: str, radius: int, threshold: float, graph: str, header = False):
     propagation = Propagation()
     # Setta i parametri
+    if os.path.isfile("graph_gexf/"+graph):
+        propagation.set_Graph(utility.load_graph(graph))
+    else:
+        print("Graph doesn't exist, default are loaded")
     propagation.set_trivector(threshold)
     id_vents = []
     propagation_method = "trivector"
@@ -193,7 +197,7 @@ def test(id_vent, distance = 4):
     # Lista nodi città
     city_nodes = []
     for n in G.nodes:
-        if G.nodes[n]['is_city'] > 0:
+        if G.nodes[n]['priority'] > 0:
             city_nodes.append(n)
 
     # Shortest paths
@@ -287,7 +291,10 @@ def genetic_train_cmd(id_vent: int, size: int, step: int, population_len: int, r
 
     filename = "graph_gexf/subgraphs/sg_" + str(id_vent) + "_" + str(size) + "_" + str(step) + ".gexf"
     if os.path.isfile(filename):
+        G = nx.read_gexf("graph_gexf/genetic_graph.gexf")
         SG = nx.read_gexf(filename)
+        for u,v in SG.edges:
+            SG.edges[u,v]['prop_weight'] = G.edges[u,v]['prop_weight']
     else:
         # Creazione del vettore dei real vect
         real_vect_list = []
@@ -315,6 +322,7 @@ def genetic_train_cmd(id_vent: int, size: int, step: int, population_len: int, r
         # Creazione del sottografo
         SG = ga.get_trivector_subgraph(tri_vect, real_vect)
         nx.write_gexf(SG, filename)
+        
 
     print("Init Genetic Algorithm")
     # Algoritmo genetico

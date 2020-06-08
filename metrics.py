@@ -117,9 +117,9 @@ def count_invaded_cities(G):
     n_invaded_cities = 0
     risk = 0
     for u in G.nodes():
-        if G.nodes[u]['is_city'] > 0 and G.nodes[u]['current_flow'] > 0:
+        if G.nodes[u]['priority'] > 0 and G.nodes[u]['current_flow'] > 0:
             n_invaded_cities += 1
-            risk += G.nodes[u]['current_flow'] * G.nodes[u]['is_city']
+            risk += G.nodes[u]['current_flow'] * G.nodes[u]['priority']
     return n_invaded_cities, risk
 
 def get_ppv_list(G, vent_list):
