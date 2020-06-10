@@ -51,3 +51,40 @@ def print_notn(notN_filename):
     dem_map [coord_vent[0]][coord_vent[1]]=255
     image = Image.fromarray(dem_map)
     image.save(img_filename[:-3] + "png")
+
+def save_plot2D_on_file(vent_list: list, original_list: list, trained_list: list, filename: str):
+    """ Metodo che crea un file con tre righe:
+   - id dei vents
+   - metrica (recall/precision) originale
+   - metrica (recall/precision) dopo addestramento """
+    with open(filename, 'w') as f:
+        for id_vent in vent_list:
+            f.write(str(id_vent) + ',')
+ 
+        f.write("\n")
+        for original in original_list:
+            f.write(str(original)+",")
+ 
+        f.write("\n")
+        for trained in trained_list:
+            f.write(str(trained)+",")
+
+def load_plot2D_from_file(filename: str):
+    """Specificare se si vuole la precision o
+   la recall tramite l'attributo metric"""
+    rows = []
+    with open(filename) as in_file:
+        rows = in_file.readlines()
+    id_vents = []
+    for id_vent in rows[0].split(",")[:-1]:
+        id_vents.append(str(id_vent))
+ 
+    original_list = []
+    for original in rows[1].split(",")[:-1]:
+        original_list.append(float(original))
+ 
+    trained_list = []
+    for trained in rows[2].split(",")[:-1]:
+        trained_list.append(float(trained))
+
+    return id_vents, original_list, trained_list

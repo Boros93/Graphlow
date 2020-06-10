@@ -13,6 +13,7 @@ import math
 import glob
 import os
 import seaborn as sns
+import visualize
 from scipy import sparse
 from Propagation import Propagation
 from Genetic_algorithm import Genetic_algorithm
@@ -282,10 +283,8 @@ def cut_cmd(id_vent, list_edges: list, neighbor_method, radius):
     mc.ascii_barrier(id_vent, propagation_method + neighbor, edges_to_cut)
 
 def genetic_train_cmd(id_vent: int, size: int, step: int, population_len: int, rho: int, epochs: int):
-    # Calcolo le coordinate a partire dal vent
-    x_coord, y_coord = conversion.vent_in_dem(id_vent-1)
     # Lista vents/nodes del sottografo
-    id_nodes, id_vents = utility.get_node_vent_chessboard(int(x_coord/25), int(y_coord/25), size, step)
+    id_nodes, id_vents = utility.get_node_vent_chessboard(id_vent, size, step)
 
     print("Calcolo chessboard terminato!")
 
@@ -299,7 +298,7 @@ def genetic_train_cmd(id_vent: int, size: int, step: int, population_len: int, r
         # Creazione del vettore dei real vect
         real_vect_list = []
         for vent in id_vents:
-            real_vect_list.append(np.load("Data/real_vectors/" + vent + ".npy"))
+            real_vect_list.append(np.load("Data/real_vectors/" + str(vent) + ".npy"))
         # Creazione del vettore dei trivector
         p = Propagation()
         tri_vect_list = []
@@ -323,7 +322,6 @@ def genetic_train_cmd(id_vent: int, size: int, step: int, population_len: int, r
         SG = ga.get_trivector_subgraph(tri_vect, real_vect)
         nx.write_gexf(SG, filename)
         
-
     print("Init Genetic Algorithm")
     # Algoritmo genetico
     gen = Genetic_algorithm(id_vents, id_nodes, SG.edges, population_len, rho)
@@ -333,29 +331,35 @@ def plot_train_result_cmd(metric: str, id_vent: int, size: int, step: int):
     # Load dei grafi
     original_graph = utility.load_graph()
     genetic_graph = utility.load_graph(gexf_filename="genetic_graph.gexf")
-    # Lista dei vents da analizzare
-    # Calcolo le coordinate a partire dal vent
-    x_coord, y_coord = conversion.vent_in_dem(id_vent-1)
-    # Lista vents/nodes del sottografo
-    id_nodes, id_vents = utility.get_node_vent_chessboard(int(x_coord/25), int(y_coord/25), size, step)
-
-    print(id_nodes)
-    #id_vents.sort(key = lambda s : int(s))
 
     if metric == "precision":
-        # Lista precision su grafo modificato
-        ppv_genetic = metrics.get_ppv_list(genetic_graph, id_vents)
-        # Lista precision su grafo originale
-        ppv_original = metrics.get_ppv_list(original_graph, id_vents)
-        sns.lineplot(id_vents, ppv_genetic)
-        sns.lineplot(id_vents, ppv_original)
-        plt.show()
+        filename = "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_precision.plt"
+        if os.path.isfile(filename):
+            id_vents, original_list, trained_list = visualize.load_plot2D_from_file(filename)
+        else:
+            # Lista vents/nodes del sottografo
+            _, id_vents = utility.get_node_vent_chessboard(id_vent, size, step)
+            # Lista precision su grafo originale
+            original_list = metrics.get_ppv_list(original_graph, id_vents)
+            # Lista precision su grafo modificato
+            trained_list = metrics.get_ppv_list(genetic_graph, id_vents)
+            # Salvataggio dei risultati del trivector PRIMA l'addestramento
+            visualize.save_plot2D_on_file(id_vents, original_list, trained_list, "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_precision.plt")
 
     elif metric == "recall":
-        # Lista recall su grafo modificato
-        tpr_genetic = metrics.get_tpr_list(genetic_graph, id_vents)
-        # Lista recall su grafo originale
-        tpr_original = metrics.get_tpr_list(original_graph, id_vents)
-        sns.lineplot(id_nodes, tpr_genetic)
-        sns.lineplot(id_nodes, tpr_original)
-        plt.show()
+        filename = "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_recall.plt"
+        if os.path.isfile(filename):
+            id_vents, original_list, trained_list = visualize.load_plot2D_from_file(filename)
+        else:
+            # Lista vents/nodes del sottografo
+            _, id_vents = utility.get_node_vent_chessboard(id_vent, size, step)
+            # Lista recall su grafo originale
+            original_list = metrics.get_tpr_list(original_graph, id_vents)
+            # Lista recall su grafo modificato
+            trained_list = metrics.get_tpr_list(genetic_graph, id_vents)
+            # Salvataggio dei risultati del trivector PRIMA l'addestramento
+            visualize.save_plot2D_on_file(id_vents, original_list, trained_list, "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_recall.plt")
+
+    sns.lineplot(id_vents, original_list, label="original")
+    sns.lineplot(id_vents, trained_list, label="trained")
+    plt.show()

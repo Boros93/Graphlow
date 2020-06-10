@@ -172,8 +172,8 @@ class Propagation:
             # vect3 resta uguale
         # Inserisco i flow calcolati nei nodi 
         for index in range(0, len(vect3)):
-            if(vect3[index] < 0.01):
-                vect3[index] = 0
+            #if(vect3[index] < 0.005):
+            #    vect3[index] = 0
             value = float(vect3[index])
             self.G.nodes[str(index)]['current_flow'] = value
         

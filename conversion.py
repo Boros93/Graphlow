@@ -48,6 +48,7 @@ def get_node_from_idvent_in_graph(id_vent):
 # Conversion coordinate griglia vent in griglia DEM
 def vent_in_dem(id_vent):
     # calcola coordinate della bocca nella griglia vent 
+    #x_vent = (id_vent % ROWS_VENT) - 1
     x_vent = id_vent % ROWS_VENT
     y_vent = int(id_vent/ROWS_VENT)
 

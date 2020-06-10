@@ -172,7 +172,13 @@ def create_vent_dict():
     return vent_node_dict
 
 # Genera una scacchiera di nodi (vent) di dimensione = size e passo = step data una coordinata iniziale
-def get_node_vent_chessboard(x, y, size, step):
+def get_node_vent_chessboard(id_vent, size, step):
+
+    # Passiamo id_vent - 1 per il solito fatto
+    x, y = conversion.vent_in_dem(id_vent-1)
+    x = int(x/25)
+    y = int(y/25)
+
     node_matrix = np.load("Data/node_matrix.npy")
     vent_matrix = np.load("Data/vent_matrix.npy")
     
@@ -192,7 +198,7 @@ def get_node_vent_chessboard(x, y, size, step):
             j_start = int(step/2)
 
         for j in range(j_start, size, step):
-            vent = vent_matrix[x + i][y + j]
+            vent = vent_matrix[x + i][y + j] + 1
             if vent != 0:
                 node_list.append(str(node_matrix[x + i][y + j]))
                 vent_list.append(str(vent))

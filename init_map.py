@@ -19,7 +19,6 @@ def create_hmap():
     array = np.array(array, dtype="float64")
     return array
 
-
 # Crea una mappa sottocampionata di un fattore scale_factor
 def create_scaled_hmap(scale_factor):
     hmap = create_hmap()

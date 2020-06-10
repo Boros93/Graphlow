@@ -40,7 +40,7 @@ def create_nodes(G, list_node):
             # Numero di regioni aggregate
             n_region = len(region_list)
             # Coordinate dei baricentri dei nodi per layout
-            x,y = get_median_position(region_list)
+            x, y = get_median_position(region_list)
             coord_regions = ""
             for r in region_list:
                 coord_regions += (str(r.coord)) + "|"

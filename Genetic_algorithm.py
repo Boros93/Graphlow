@@ -36,11 +36,13 @@ class Genetic_algorithm:
 
         # Calcolo la fitness del patriarca
         self.population[0].compute_fitness(self.edges_dict)
+        print("Soluzione 0:", self.population[0].fitness)
         # Setto la fitness delle altre soluzioni e applico le mutazioni(in base alla fitness)
         for i in range(1, self.population_len):
             self.population[i].set_fitness(self.population[0].fitness)
             self.population[i].hypermutation(self.rho)
             self.population[i].compute_fitness(self.edges_dict)
+            print("Soluzione", i, ":", self.population[i].fitness)
 
     def __increment_age(self):
         for i in range(len(self.population)):
@@ -126,8 +128,8 @@ class Genetic_algorithm:
             # Stampa le best fitness
             print("Printing...")
             f.write("Epoch " + str(e) + ": " + str(self.population[0].fitness) + "\n")
-            for p in self.population:
-                print(p.fitness)
+            for i in range(self.population_len):
+                print(self.population[i].fitness)
 
             self.population[0].propagation.export_graph('genetic_graph.gexf')
         
