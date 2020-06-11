@@ -171,11 +171,47 @@ def create_vent_dict():
                 vent_node_dict[row[0]] = row[1]
     return vent_node_dict
 
+# ottiene un vettore di cardinalità 5820 dalle simulazioni unificate di MAGFLOW
+def vect_sim(id_vent):
+    #matrice 91*75
+    M = np.zeros((91, 75), dtype=int)
+    # carico la lista dei file delle simulazioni
+    filelist = glob("Data/simulations/NotN_vent_" + str(id_vent) + "_" + "*"  + ".txt")
+    if len(filelist) == 0:
+        return
+    print("vent: ", id_vent)
+    for vent_file in filelist:
+        #apre ogni singolo file
+        with open(vent_file, 'r') as in_file:
+            # legge ogni riga del file
+            for line in in_file:
+                row, col = line.split(" ")
+                row = int(row)
+                col = int(col)
+                #per ogni riga del file inserisce 1 nella matrice
+                M[int(row / 25)][int(col / 25)] = 1
+
+    #carica il grafo
+    G = load_graph()
+    #istanzia il vettore di output
+    vect = np.zeros((len(G.nodes)), dtype= int)
+    #scorre i nodi del grafo
+    for u in G.nodes():
+        # si ottiene una lista di coordinate
+        coords = G.nodes[u]['coord_regions'].split("|")
+        for coord in coords:
+            # ottiene il valore di riga e colonna
+            row, col = conversion.cast_coord_attr(coord)
+            # si riempie il vettore in posizione u con il valore di M(row, col)
+            vect[int(u)] = M[row][col]
+    filename = "Data/real_vectors/" + str(id_vent)
+    # esporta il vettore
+    np.save(filename, vect)
+
 # Genera una scacchiera di nodi (vent) di dimensione = size e passo = step data una coordinata iniziale
 def get_node_vent_chessboard(id_vent, size, step):
 
-    # Passiamo id_vent - 1 per il solito fatto
-    x, y = conversion.vent_in_dem(id_vent-1)
+    x, y = conversion.vent_in_dem(id_vent)
     x = int(x/25)
     y = int(y/25)
 
@@ -198,7 +234,7 @@ def get_node_vent_chessboard(id_vent, size, step):
             j_start = int(step/2)
 
         for j in range(j_start, size, step):
-            vent = vent_matrix[x + i][y + j] + 1
+            vent = vent_matrix[x + i][y + j]
             if vent != 0:
                 node_list.append(str(node_matrix[x + i][y + j]))
                 vent_list.append(str(vent))

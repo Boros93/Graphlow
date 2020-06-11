@@ -36,8 +36,6 @@ def get_vent_from_idnode(id_node: str):
 
 # Restituisce l'id del nodo, dato un id di un vent controllando le coordinate all'interno del grafo
 def get_node_from_idvent_in_graph(id_vent):
-    # La griglia dei vent parte da 1
-    id_vent = int(id_vent) - 1
     # Ritorna le coordinate del vent nel DEM
     coord_vent = vent_in_dem(id_vent)
     G = utility.load_graph()
@@ -48,8 +46,8 @@ def get_node_from_idvent_in_graph(id_vent):
 # Conversion coordinate griglia vent in griglia DEM
 def vent_in_dem(id_vent):
     # calcola coordinate della bocca nella griglia vent 
-    #x_vent = (id_vent % ROWS_VENT) - 1
-    x_vent = id_vent % ROWS_VENT
+    # la griglia dei vent parte da 1
+    x_vent = (id_vent - 1) % ROWS_VENT
     y_vent = int(id_vent/ROWS_VENT)
 
     # calcola le coordinate nord e est della bocca

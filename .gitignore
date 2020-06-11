@@ -41,3 +41,7 @@ CSVMaps/linked_map.csv
 log/*
 
 *.pyc
+
+plot/
+
+test\.py

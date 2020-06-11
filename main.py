@@ -10,7 +10,7 @@ def parse_input():
 
     # Realsim
     realsim_parser = subparser.add_parser('realsim')
-    realsim_parser.add_argument('id_vent', type=str, help='ID of grid Vent')
+    realsim_parser.add_argument('id_vent', type=int, help='ID of grid Vent')
     realsim_parser.add_argument('-c', '--realclass', type=str, default="0", choices=['0','1','2','3','4','5','6'], help="Class of real simulation (0 for unified simulation). Default=0")
     realsim_parser.add_argument('-neigh', '--neighborhood', type=str, choices=['moore', 'neumann'], default=None, help='Neighborhood of Vent. Default=None')
     realsim_parser.add_argument('-r', '--radius', type=int, default=1, help="Radius of the neighborhood. Default=1")

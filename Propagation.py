@@ -7,6 +7,7 @@ import random
 import metrics
 import networkx as nx
 import time
+import copy
 
 from scipy import sparse
 
@@ -15,6 +16,8 @@ class Propagation:
         # --- Parametri default ---
         # Trivector:
         self.tri_threshold = 0.001
+        self.tri_t_min = 0.015
+        self.tri_t_max = 0.015
 
         # Eruption:
         self.eru_volume = 1000
@@ -95,6 +98,8 @@ class Propagation:
             vect1 = vect2.copy()
             vect2 = vect3.copy()
             # vect3 resta uguale
+
+        vect3 = self.filtering(vect3)
         return vect3
 
     def trivector(self, id_vents: list):
@@ -163,16 +168,18 @@ class Propagation:
                 support_queue_list = list(support_queue.queue)
                 if increment > 1.e-7:
                     for v in self.G.successors(j_node):
-                        if True: #G.edges[j_node, v][key_to_control] - G.edges[v, j_node][key_to_control] > 0:
-                            if v not in support_queue_list:
-                                support_queue.put(v)
+                        #if self.G.edges[j_node, v][key_to_control] - self.G.edges[v, j_node][key_to_control] > 0.01:
+                        if v not in support_queue_list:
+                            support_queue.put(v)
             # Shift dei vettori temporali
             vect1 = vect2.copy()
             vect2 = vect3.copy()
             # vect3 resta uguale
         # Inserisco i flow calcolati nei nodi 
+
+        vect3 = self.filtering(vect3)
         for index in range(0, len(vect3)):
-            #if(vect3[index] < 0.005):
+            #if(vect3[index] < 0.002):
             #    vect3[index] = 0
             value = float(vect3[index])
             self.G.nodes[str(index)]['current_flow'] = value
@@ -343,6 +350,20 @@ class Propagation:
 
     def export_graph(self, filename):
         nx.write_gexf(self.G, "graph_gexf/" + filename)
+
+    def filtering(self, vect):
+        tmp = copy.copy(vect)
+        for u in self.G.nodes:
+            if tmp[int(u)] < self.tri_t_min:
+                count = 0
+                for v in self.G.successors(u):
+                    if tmp[int(v)] > self.tri_t_max:
+                        break
+                    count += 1
+                if count == len(list(self.G.successors(u))):
+                    vect[int(u)] = 0
+        
+        return vect
 
     def set_trivector(self, tri_threshold):
         if not tri_threshold == -1:

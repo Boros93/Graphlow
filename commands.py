@@ -19,7 +19,8 @@ from Propagation import Propagation
 from Genetic_algorithm import Genetic_algorithm
 from matplotlib import pyplot as plt
 
-def realsim_cmd(id_vent: str, real_class: str, neighbor_method: str, radius: int):
+def realsim_cmd(id_vent: int, real_class: str, neighbor_method: str, radius: int):
+    id_vent = str(id_vent - 1)
     propagation = Propagation()
     id_vents = [id_vent]
     neighbor = ""
@@ -34,6 +35,8 @@ def realsim_cmd(id_vent: str, real_class: str, neighbor_method: str, radius: int
                 return None  
         sparse_matrix_c, sparse_matrix_d = propagation.real(id_vents, real_class, neighbor)
         # Esportazione in ASCII Grid
+        for i in range(len(id_vents)):
+            id_vents[i] = int(id_vents[i]) + 1
         mc.ascii_creator(id_vents, "ucsim" + neighbor, sparse_matrix_c)
         mc.ascii_creator(id_vents, "udsim" + neighbor, sparse_matrix_d)
         return 
@@ -42,7 +45,7 @@ def realsim_cmd(id_vent: str, real_class: str, neighbor_method: str, radius: int
             raise ValueError("multiple vents not supported for class != 0")
         sparse_matrix = propagation.real(id_vents, real_class, neighbor)
         # Esportazione in ASCII Grid
-        mc.ascii_creator(id_vents, neighbor + real_class, sparse_matrix)
+        mc.ascii_creator([str(id_vent + 1)], neighbor + real_class, sparse_matrix)
         return
 
 # Sistemare - per il mio amico Pavel. Se sono Pavel allora so già tutto!
@@ -339,6 +342,8 @@ def plot_train_result_cmd(metric: str, id_vent: int, size: int, step: int):
         else:
             # Lista vents/nodes del sottografo
             _, id_vents = utility.get_node_vent_chessboard(id_vent, size, step)
+            for i in range(len(id_vents)):
+                id_vents[i] = str(int(id_vents[i]) + 1)
             # Lista precision su grafo originale
             original_list = metrics.get_ppv_list(original_graph, id_vents)
             # Lista precision su grafo modificato
@@ -353,6 +358,8 @@ def plot_train_result_cmd(metric: str, id_vent: int, size: int, step: int):
         else:
             # Lista vents/nodes del sottografo
             _, id_vents = utility.get_node_vent_chessboard(id_vent, size, step)
+            for i in range(len(id_vents)):
+                id_vents[i] = str(int(id_vents[i]) + 1)
             # Lista recall su grafo originale
             original_list = metrics.get_tpr_list(original_graph, id_vents)
             # Lista recall su grafo modificato
