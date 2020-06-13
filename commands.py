@@ -18,6 +18,7 @@ from scipy import sparse
 from Propagation import Propagation
 from Genetic_algorithm import Genetic_algorithm
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 def realsim_cmd(id_vent: int, real_class: str, neighbor_method: str, radius: int):
     id_vent = str(id_vent - 1)
@@ -288,55 +289,46 @@ def cut_cmd(id_vent, list_edges: list, neighbor_method, radius):
 def genetic_train_cmd(id_vent: int, size: int, step: int, population_len: int, rho: int, epochs: int):
     # Lista vents/nodes del sottografo
     id_nodes, id_vents = utility.get_node_vent_chessboard(id_vent, size, step)
-
     print("Calcolo chessboard terminato!")
 
-    filename = "graph_gexf/subgraphs/sg_" + str(id_vent) + "_" + str(size) + "_" + str(step) + ".gexf"
-    if os.path.isfile(filename):
-        G = nx.read_gexf("graph_gexf/genetic_graph.gexf")
-        SG = nx.read_gexf(filename)
-        for u,v in SG.edges:
-            SG.edges[u,v]['prop_weight'] = G.edges[u,v]['prop_weight']
-    else:
-        # Creazione del vettore dei real vect
-        real_vect_list = []
-        for vent in id_vents:
-            real_vect_list.append(np.load("Data/real_vectors/" + str(vent) + ".npy"))
-        # Creazione del vettore dei trivector
-        p = Propagation()
-        tri_vect_list = []
-        for node in id_nodes:
-            tri_vect_list.append(p.trivector_train(node))
+    # Creazione del vettore dei real vect
+    real_vect_list = []
+    for vent in id_vents:
+        real_vect_list.append(np.load("Data/real_vectors/" + str(vent) + ".npy"))
+    # Creazione del vettore dei trivector
+    p = Propagation()
+    tri_vect_list = []
+    for node in id_nodes:
+        tri_vect_list.append(p.trivector_train(node))
 
-        # Real vect e tri vect unificati
-        real_vect = np.zeros(5820)
-        tri_vect = np.zeros(5820)
-        for i in range(5820):
-            for vect in tri_vect_list:
-                if vect[i] > 0:
-                    tri_vect[i] = 1
-                    break
-            for vect in real_vect_list:
-                if vect[i] > 0:
-                    real_vect[i] = 1
-                    break
+    # Real vect e tri vect unificati
+    real_vect = np.zeros(5820)
+    tri_vect = np.zeros(5820)
+    for i in range(5820):
+        for vect in tri_vect_list:
+            if vect[i] > 0:
+                tri_vect[i] = 1
+                break
+        for vect in real_vect_list:
+            if vect[i] > 0:
+                real_vect[i] = 1
+                break
 
-        # Creazione del sottografo
-        SG = ga.get_trivector_subgraph(tri_vect, real_vect)
-        nx.write_gexf(SG, filename)
+    # Creazione del sottografo
+    SG = ga.get_trivector_subgraph(tri_vect, real_vect)
         
     print("Init Genetic Algorithm")
     # Algoritmo genetico
     gen = Genetic_algorithm(id_vents, id_nodes, SG.edges, population_len, rho)
     gen.start(epochs)
 
-def plot_train_result_cmd(metric: str, id_vent: int, size: int, step: int):
+def plot_2d_cmd(metric: str, id_vent: int, size: int, step: int):
     # Load dei grafi
     original_graph = utility.load_graph()
     genetic_graph = utility.load_graph(gexf_filename="genetic_graph.gexf")
 
     if metric == "precision":
-        filename = "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_precision.plt"
+        filename = "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_precision2d.plt"
         if os.path.isfile(filename):
             id_vents, original_list, trained_list = visualize.load_plot2D_from_file(filename)
         else:
@@ -349,10 +341,10 @@ def plot_train_result_cmd(metric: str, id_vent: int, size: int, step: int):
             # Lista precision su grafo modificato
             trained_list = metrics.get_ppv_list(genetic_graph, id_vents)
             # Salvataggio dei risultati del trivector PRIMA l'addestramento
-            visualize.save_plot2D_on_file(id_vents, original_list, trained_list, "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_precision.plt")
+            visualize.save_plot2D_on_file(id_vents, original_list, trained_list, "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_precision2d.plt")
 
     elif metric == "recall":
-        filename = "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_recall.plt"
+        filename = "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_recall2d.plt"
         if os.path.isfile(filename):
             id_vents, original_list, trained_list = visualize.load_plot2D_from_file(filename)
         else:
@@ -362,11 +354,73 @@ def plot_train_result_cmd(metric: str, id_vent: int, size: int, step: int):
                 id_vents[i] = str(int(id_vents[i]) + 1)
             # Lista recall su grafo originale
             original_list = metrics.get_tpr_list(original_graph, id_vents)
-            # Lista recall su grafo modificato
+            # Lista recall su grafo trained
             trained_list = metrics.get_tpr_list(genetic_graph, id_vents)
-            # Salvataggio dei risultati del trivector PRIMA l'addestramento
-            visualize.save_plot2D_on_file(id_vents, original_list, trained_list, "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_recall.plt")
+            # Salvataggio dei risultati su file
+            visualize.save_plot2D_on_file(id_vents, original_list, trained_list, "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_recall2d.plt")
 
     sns.lineplot(id_vents, original_list, label="original")
     sns.lineplot(id_vents, trained_list, label="trained")
+    plt.show()
+
+def plot_3d_cmd(metric: str, id_vent: int, size: int, step: int):
+    # Load dei grafi
+    original_graph = utility.load_graph()
+    genetic_graph = utility.load_graph(gexf_filename="genetic_graph.gexf")
+
+    if metric == "precision":
+        filename = "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_precision3d.plt"
+        if os.path.isfile(filename):
+            x_coords, y_coords, original_list, trained_list = visualize.load_plot3D_from_file(filename)
+        else:
+            # Lista vents/nodes del sottografo
+            id_nodes, id_vents = utility.get_node_vent_chessboard(id_vent, size, step)
+            # Coords
+            x_coords = []
+            y_coords = []
+            for id_node in id_nodes:
+                x, y = conversion.cast_coord_attr(original_graph.nodes[id_node]['coord_regions'])
+                x_coords.append(x)
+                y_coords.append(y)
+            # Lista precision su grafo originale
+            original_list = metrics.get_ppv_list(original_graph, id_vents)
+            # Lista precision su grafo trained
+            trained_list = metrics.get_ppv_list(genetic_graph, id_vents)
+            # Salvataggio dei risultati su file
+            visualize.save_plot3D_on_file(x_coords, y_coords, original_list, trained_list, "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_precision3d.plt")
+
+    elif metric == "recall":
+        filename = "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_recall3d.plt"
+        if os.path.isfile(filename):
+            x_coords, y_coords, original_list, trained_list = visualize.load_plot3D_from_file(filename)
+        else:
+            # Lista vents/nodes del sottografo
+            id_nodes, id_vents = utility.get_node_vent_chessboard(id_vent, size, step)
+            # Coords
+            x_coords = []
+            y_coords = []
+            for id_node in id_nodes:
+                x, y = conversion.cast_coord_attr(original_graph.nodes[id_node]['coord_regions'])
+                x_coords.append(x)
+                y_coords.append(y)
+            # Lista recall su grafo originale
+            original_list = metrics.get_tpr_list(original_graph, id_vents)
+            # Lista recall su grafo trained
+            trained_list = metrics.get_tpr_list(genetic_graph, id_vents)
+            # Salvataggio dei risultati su file
+            visualize.save_plot3D_on_file(x_coords, y_coords, original_list, trained_list, "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_recall3d.plt")
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(x_coords, y_coords, original_list, color='red', marker='X', s=50)
+    ax.scatter(x_coords, y_coords, trained_list, color='blue', marker='D', s=50)
+
+    for i in range(len(trained_list)):
+        if trained_list[i] > original_list[i]:
+            color = 'blue'
+        else:
+            color = 'red'
+
+        ax.plot([x_coords[i], x_coords[i]], [y_coords[i], y_coords[i]], [original_list[i], trained_list[i]], color=color)
+
     plt.show()

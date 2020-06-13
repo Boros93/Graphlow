@@ -197,6 +197,13 @@ def get_trivector_subgraph(tri_vect, real_vect):
     for i in range(0, len(real_vect)):# il nodo è invaso se l'i-esima posizione del vettore è maggiore di 0
         if real_vect[i] > 0:
             list_nodes.append(str(i))
+    # espansione simulazione reale al vicinato
+    tmp = []
+    for u in list_nodes:
+        for v in G.successors(u):
+            if v not in list_nodes and v not in tmp:
+                tmp.append(v)
+    list_nodes += tmp
     # scorro il vettore di trivector
     for i in range(0, len(tri_vect)):
         if tri_vect[i] > 0 and str(i) not in list_nodes: # il nodo è invaso se l'i-esima posizione del vettore è maggiore di 0

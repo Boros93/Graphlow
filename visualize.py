@@ -69,9 +69,34 @@ def save_plot2D_on_file(vent_list: list, original_list: list, trained_list: list
         for trained in trained_list:
             f.write(str(trained)+",")
 
+def save_plot3D_on_file(x_coords: list, y_coords: list, original_list: list, trained_list: list, filename: str):
+    """ Metodo che crea un file con quattro righe:
+    - x coords dei vents
+    - y coords dei vents
+    - metrica (recall/precision) originale
+    - metrica (recall/precision) dopo addestramento """
+    with open(filename, 'w') as f:
+        for x in x_coords:
+            f.write(str(x) + ",")
+
+        f.write("\n")
+        for y in y_coords:
+            f.write(str(y) + ",")
+    
+        f.write("\n")
+        for original in original_list:
+            f.write(str(original) + ",")
+ 
+        f.write("\n")
+        for trained in trained_list:
+            f.write(str(trained) + ",")
+
 def load_plot2D_from_file(filename: str):
-    """Specificare se si vuole la precision o
-   la recall tramite l'attributo metric"""
+    """ Metodo che carica un file plt restituendo:
+    - lista dei vents
+    - metrica (recall/precision) originale
+    - metrica (recall/precision) dopo addestramento """
+    
     rows = []
     with open(filename) as in_file:
         rows = in_file.readlines()
@@ -88,3 +113,32 @@ def load_plot2D_from_file(filename: str):
         trained_list.append(float(trained))
 
     return id_vents, original_list, trained_list
+
+def load_plot3D_from_file(filename: str):
+    """ Metodo che carica un file plt restituendo:
+    - x coords dei vents
+    - y coords dei vents
+    - metrica (recall/precision) originale
+    - metrica (recall/precision) dopo addestramento """
+
+    rows = []
+    with open(filename) as in_file:
+        rows = in_file.readlines()
+
+    x_coords = []
+    for x in rows[0].split(",")[:-1]:
+        x_coords.append(int(x))
+
+    y_coords = []
+    for y in rows[1].split(",")[:-1]:
+        y_coords.append(int(y))
+    
+    original_list = []
+    for original in rows[2].split(",")[:-1]:
+        original_list.append(float(original))
+ 
+    trained_list = []
+    for trained in rows[3].split(",")[:-1]:
+        trained_list.append(float(trained))
+
+    return x_coords, y_coords, original_list, trained_list

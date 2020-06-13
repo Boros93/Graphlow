@@ -6,15 +6,18 @@ import numpy as np
 
 class Genetic_algorithm:
     def __init__(self, id_vents: list, id_nodes: list, edges: dict, population_len, rho):
-        
-        # Preso dal csv
+
+        # Vents del sottografo
         self.id_vents = id_vents
+
         # Real vectors
         self.real_vect = []
         for vent in id_vents:
             self.real_vect.append(np.load("Data/real_vectors/" + str(vent) + ".npy"))
 
+        # Nodes del sottografo
         self.id_nodes = id_nodes
+        
         # Dizionario che mantiene la struttura degli archi key = (u, v) e value = trasmittance
         self.edges_dict = edges
         # Estraggo i valori degli edges

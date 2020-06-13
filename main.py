@@ -48,12 +48,19 @@ def parse_input():
     gen_parser.add_argument('-rho', '--rho', type=int, default=8, help='Mutation rate. Default=8')
     gen_parser.add_argument('-e', '--epochs', type=int, default=10, help='Number of epochs. Default=10')
 
-    # Plot training result
-    plot_parser = subparser.add_parser('plot')
-    plot_parser.add_argument('metric', type=str, choices=['precision', 'recall'], help="Metric to plot")
-    plot_parser.add_argument('id_vent', type=int, help='Initial vent of the grid')
-    plot_parser.add_argument('-size', '--size', type=int, default=10, help='Dimension of area. Default=10')
-    plot_parser.add_argument('-step', '--step', type=int, default=4, help='Distance between vents. Default=4')
+    # Plot training result 2d
+    plot2d_parser = subparser.add_parser('plot2d')
+    plot2d_parser.add_argument('metric', type=str, choices=['precision', 'recall'], help="Metric to plot")
+    plot2d_parser.add_argument('id_vent', type=int, help='Initial vent of the grid')
+    plot2d_parser.add_argument('-size', '--size', type=int, default=10, help='Dimension of area. Default=10')
+    plot2d_parser.add_argument('-step', '--step', type=int, default=4, help='Distance between vents. Default=4')
+
+    # Plot training result 3d
+    plot3d_parser = subparser.add_parser('plot3d')
+    plot3d_parser.add_argument('metric', type=str, choices=['precision', 'recall'], help="Metric to plot")
+    plot3d_parser.add_argument('id_vent', type=int, help='Initial vent of the grid')
+    plot3d_parser.add_argument('-size', '--size', type=int, default=10, help='Dimension of area. Default=10')
+    plot3d_parser.add_argument('-step', '--step', type=int, default=4, help='Distance between vents. Default=4')
     
     return parser.parse_args()
 
@@ -70,8 +77,10 @@ def switch_command(args):
         commands.realsim_cmd(id_vent=args.id_vent, real_class=args.realclass, neighbor_method=args.neighborhood, radius=args.radius)
     elif args.command == "genetic":
         commands.genetic_train_cmd(id_vent=args.id_vent, size=args.size, step=args.step, population_len=args.population, rho=args.rho, epochs=args.epochs)
-    elif args.command == "plot":
-        commands.plot_train_result_cmd(metric=args.metric, id_vent=args.id_vent, size=args.size, step=args.step)
+    elif args.command == "plot2d":
+        commands.plot_2d_cmd(metric=args.metric, id_vent=args.id_vent, size=args.size, step=args.step)
+    elif args.command == "plot3d":
+        commands.plot_3d_cmd(metric=args.metric, id_vent=args.id_vent, size=args.size, step=args.step)
 
 args = parse_input()
 switch_command(args)

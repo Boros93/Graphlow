@@ -22,8 +22,6 @@ class Genetic_solution:
         self.age = np.random.randint(0, (2 * max_age) / 3)
 
         self.propagation = Propagation()
-        if os.path.isfile("graph_gexf/genetic_graph.gexf"):
-            self.propagation.set_Graph(utility.load_graph("genetic_graph.gexf"))
 
     def __fbeta_score(self, tri_vect, idx: int):
         tp, fp, tn, fn = 0, 0, 0, 0
@@ -41,7 +39,7 @@ class Genetic_solution:
         ppv = tp / (tp + fp)
         tpr = tp / (tp + fn)
         # beta grande! 
-        beta = 3
+        beta = 2
         fbeta_score = (1 + beta**2) * ppv * tpr / ((beta**2 * ppv) + tpr)
         return fbeta_score
 
