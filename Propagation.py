@@ -256,7 +256,7 @@ class Propagation:
             if vect[int(u)] < 1.e-7:
                 vect[int(u)] = 0
         # Esportazione in matrice sparsa
-        sparse_matrix = self.export_sparse(vect, id_vent, "eruption")
+        sparse_matrix = self.create_sparse(vect)
         return sparse_matrix
 
     def montecarlo(self, id_vents: list):
@@ -308,7 +308,7 @@ class Propagation:
             vect[int(u)] = self.G.nodes[u]["current_flow"] / self.prob_epoch
         
         # Esportazione in matrice sparsa
-        sparse_matrix = self.export_sparse(vect, id_vent, "proberuption")
+        sparse_matrix = self.create_sparse(vect)
         return sparse_matrix
 
     def real(self, id_vents: list, real_class: str, neighbor: str):

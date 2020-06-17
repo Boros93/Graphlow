@@ -155,29 +155,27 @@ def trivector_cmd(id_vent: str, neighbor_method: str, radius: int, threshold: fl
     G = propagation.get_Graph()
     utility.visualize_and_metrics(id_vents, propagation_method, neighbor, sparse_matrix, G, header)
 
-def eruption_cmd(id_vent, volume = -1, n_days = -1, threshold = -1, header = False):
-    if id_vent == 0:
-        return
+def eruption_cmd(id_vent, volume, n_days, threshold, header = False):
     propagation = Propagation()
     # Setta i parametri
     propagation.set_eruption(volume, n_days, threshold)
     # Esecuzione algoritmo 
-    sparse_matrix = propagation.eruption(id_vent)
+    sparse_matrix = propagation.eruption([id_vent])
     # Esportazione in ASCII e calcolo metriche
     G = propagation.get_Graph()
-    utility.visualize_and_metrics(id_vent, "eruption", sparse_matrix, G, header)
+    utility.visualize_and_metrics([id_vent], "eruption", "", sparse_matrix, G, header)
 
-def montecarlo_cmd(id_vent, n_epochs = -1, second_chance = -1, header = False):
+def montecarlo_cmd(id_vent, n_epochs, second_chance, header = False):
     if id_vent == 0:
         return
     propagation = Propagation()
     # Setta i parametri
     propagation.set_montecarlo(n_epochs, second_chance)
     # Esecuzione algoritmo 
-    sparse_matrix = propagation.trivector(id_vent)
+    sparse_matrix = propagation.montecarlo([id_vent])
     # Esportazione in ASCII e calcolo metriche
     G = propagation.get_Graph()
-    utility.visualize_and_metrics(id_vent, "montecarlo", sparse_matrix, G, header)
+    utility.visualize_and_metrics([id_vent], "montecarlo", "",sparse_matrix, G, header)
 
 def test(id_vent, distance = 4):
     propagation = Propagation()

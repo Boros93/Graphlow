@@ -23,6 +23,19 @@ def parse_input():
     trivector_parser.add_argument('-r', '--radius', type=int, default=1, help="Radius of the neighborhood. Default=1")
     trivector_parser.add_argument('-g', '--graph', type=str, default="graphlow.gexf", help="Graph to use. Default=graphlow.gexf")
 
+    # Eruption
+    eruption_parser = subparser.add_parser('eruption')
+    eruption_parser.add_argument('id_vent', type=str, help='ID of grid Vent')
+    eruption_parser.add_argument('-d', '--days', type=int, default=7, help="Duration of eruption (in days). Default=7")
+    eruption_parser.add_argument('-t', '--threshold', type=float, default=0.001, help="Eruption threshold. Default=0.001")
+    eruption_parser.add_argument('-v', '--volume', type=float, default=1000, help="Eruption total volume. Default=1000")
+
+    # Montecarlo
+    montecarlo_parser = subparser.add_parser('montecarlo')
+    montecarlo_parser.add_argument('id_vent', type=str, help='ID of grid Vent')
+    montecarlo_parser.add_argument('-e', '--epochs', type=int, default=100, help="Number of Montecarlo's epochs. Default=100")
+    montecarlo_parser.add_argument('-c', '--chance', type=float, default=0.0, help="Eruption threshold. Default=0.001")
+
     # Autocut
     autocut_parser = subparser.add_parser('autocut')
     autocut_parser.add_argument('id_vent', type=str, help='ID of grid Vent')
@@ -68,6 +81,10 @@ def parse_input():
 def switch_command(args):
     if args.command == "trivector":
         commands.trivector_cmd(id_vent=args.id_vent, neighbor_method=args.neighborhood, radius=args.radius, threshold=args.threshold, graph=args.graph)
+    elif args.command == "eruption":
+        commands.eruption_cmd(id_vent=args.id_vent, volume=args.volume, n_days=args.days, threshold=args.threshold)
+    elif args.command == "montecarlo":
+        commands.montecarlo_cmd(id_vent=args.id_vent, n_epochs=args.epochs, second_chance=args.chance)
     elif args.command == "autocut":
         commands.autocut_cmd(id_vent=args.id_vent, distance=args.distance, 
                                 neighbor_method=args.neighborhood, dimension=args.dimension, mode=args.mode, radius=args.radius)
@@ -81,6 +98,6 @@ def switch_command(args):
         commands.plot_2d_cmd(metric=args.metric, id_vent=args.id_vent, size=args.size, step=args.step)
     elif args.command == "plot3d":
         commands.plot_3d_cmd(metric=args.metric, id_vent=args.id_vent, size=args.size, step=args.step)
-
+        
 args = parse_input()
 switch_command(args)
