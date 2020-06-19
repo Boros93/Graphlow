@@ -16,7 +16,7 @@ import seaborn as sns
 import visualize
 from scipy import sparse
 from Propagation import Propagation
-from Genetic_algorithm import Genetic_algorithm
+from Immunological_algorithm import Immunological_algorithm
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -284,7 +284,7 @@ def cut_cmd(id_vent, list_edges: list, neighbor_method, radius):
     utility.visualize_and_metrics(id_vents, propagation_method, neighbor, sparse_matrix, G, False)
     mc.ascii_barrier(id_vent, propagation_method + neighbor, edges_to_cut)
 
-def genetic_train_cmd(id_vent: int, size: int, step: int, population_len: int, rho: int, epochs: int):
+def immunological_train_cmd(id_vent: int, size: int, step: int, population_len: int, rho: int, epochs: int):
     # Lista vents/nodes del sottografo
     id_nodes, id_vents = utility.get_node_vent_chessboard(id_vent, size, step)
     print("Calcolo chessboard terminato!")
@@ -315,15 +315,15 @@ def genetic_train_cmd(id_vent: int, size: int, step: int, population_len: int, r
     # Creazione del sottografo
     SG = ga.get_trivector_subgraph(tri_vect, real_vect)
         
-    print("Init Genetic Algorithm")
-    # Algoritmo genetico
-    gen = Genetic_algorithm(id_vents, id_nodes, SG.edges, population_len, rho)
-    gen.start(epochs)
+    print("Init immunological Algorithm")
+    # Algoritmo immunologico
+    imm = Immunological_algorithm(id_vents, id_nodes, SG.edges, population_len, rho)
+    imm.start(epochs)
 
 def plot_2d_cmd(metric: str, id_vent: int, size: int, step: int):
     # Load dei grafi
     original_graph = utility.load_graph()
-    genetic_graph = utility.load_graph(gexf_filename="genetic_graph.gexf")
+    immunological_graph = utility.load_graph(gexf_filename="immunological_graph.gexf")
 
     if metric == "precision":
         filename = "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_precision2d.plt"
@@ -337,7 +337,7 @@ def plot_2d_cmd(metric: str, id_vent: int, size: int, step: int):
             # Lista precision su grafo originale
             original_list = metrics.get_ppv_list(original_graph, id_vents)
             # Lista precision su grafo modificato
-            trained_list = metrics.get_ppv_list(genetic_graph, id_vents)
+            trained_list = metrics.get_ppv_list(immunological_graph, id_vents)
             # Salvataggio dei risultati del trivector PRIMA l'addestramento
             visualize.save_plot2D_on_file(id_vents, original_list, trained_list, "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_precision2d.plt")
 
@@ -353,7 +353,7 @@ def plot_2d_cmd(metric: str, id_vent: int, size: int, step: int):
             # Lista recall su grafo originale
             original_list = metrics.get_tpr_list(original_graph, id_vents)
             # Lista recall su grafo trained
-            trained_list = metrics.get_tpr_list(genetic_graph, id_vents)
+            trained_list = metrics.get_tpr_list(immunological_graph, id_vents)
             # Salvataggio dei risultati su file
             visualize.save_plot2D_on_file(id_vents, original_list, trained_list, "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_recall2d.plt")
 
@@ -364,7 +364,7 @@ def plot_2d_cmd(metric: str, id_vent: int, size: int, step: int):
 def plot_3d_cmd(metric: str, id_vent: int, size: int, step: int):
     # Load dei grafi
     original_graph = utility.load_graph()
-    genetic_graph = utility.load_graph(gexf_filename="genetic_graph.gexf")
+    immunological_graph = utility.load_graph(gexf_filename="immunological_graph.gexf")
 
     if metric == "precision":
         filename = "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_precision3d.plt"
@@ -383,7 +383,7 @@ def plot_3d_cmd(metric: str, id_vent: int, size: int, step: int):
             # Lista precision su grafo originale
             original_list = metrics.get_ppv_list(original_graph, id_vents)
             # Lista precision su grafo trained
-            trained_list = metrics.get_ppv_list(genetic_graph, id_vents)
+            trained_list = metrics.get_ppv_list(immunological_graph, id_vents)
             # Salvataggio dei risultati su file
             visualize.save_plot3D_on_file(x_coords, y_coords, original_list, trained_list, "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_precision3d.plt")
 
@@ -404,7 +404,7 @@ def plot_3d_cmd(metric: str, id_vent: int, size: int, step: int):
             # Lista recall su grafo originale
             original_list = metrics.get_tpr_list(original_graph, id_vents)
             # Lista recall su grafo trained
-            trained_list = metrics.get_tpr_list(genetic_graph, id_vents)
+            trained_list = metrics.get_tpr_list(immunological_graph, id_vents)
             # Salvataggio dei risultati su file
             visualize.save_plot3D_on_file(x_coords, y_coords, original_list, trained_list, "plot/" + str(id_vent) + "_" + str(size) + "_" + str(step) + "_recall3d.plt")
     

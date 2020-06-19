@@ -5,7 +5,7 @@ import os
 
 from Propagation import Propagation
 
-class Genetic_solution:
+class Immunological_solution:
     def __init__(self, id_nodes: list, edges: list, real_vect: list, max_age = 5):
         # Id node
         self.id_nodes = id_nodes
@@ -39,7 +39,7 @@ class Genetic_solution:
         ppv = tp / (tp + fp)
         tpr = tp / (tp + fn)
         # beta grande! 
-        beta = 2
+        beta = 3
         fbeta_score = (1 + beta**2) * ppv * tpr / ((beta**2 * ppv) + tpr)
         return fbeta_score
 

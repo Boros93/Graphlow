@@ -52,14 +52,14 @@ def parse_input():
     cut_parser.add_argument('-neigh', '--neighborhood', type=str, choices=['moore', 'neumann'], default=None, help='Neighborhood of Vent. Default=None')
     cut_parser.add_argument('-r', '--radius', type=int, default=1, help="Radius of the neighborhood. Default=1") 
 
-    # Genetic train
-    gen_parser = subparser.add_parser('genetic')
-    gen_parser.add_argument('id_vent', type=int, help='Initial vent')
-    gen_parser.add_argument('-size', '--size', type=int, default=10, help='Dimension of area. Default=10')
-    gen_parser.add_argument('-step', '--step', type=int, default=4, help='Distance between vents. Default=4')
-    gen_parser.add_argument('-pop', '--population', type=int, default=5, help="Population size of the algorithm. Default=5")
-    gen_parser.add_argument('-rho', '--rho', type=int, default=8, help='Mutation rate. Default=8')
-    gen_parser.add_argument('-e', '--epochs', type=int, default=10, help='Number of epochs. Default=10')
+    # Immunological train
+    imm_parser = subparser.add_parser('immunological')
+    imm_parser.add_argument('id_vent', type=int, help='Initial vent')
+    imm_parser.add_argument('-size', '--size', type=int, default=10, help='Dimension of area. Default=10')
+    imm_parser.add_argument('-step', '--step', type=int, default=4, help='Distance between vents. Default=4')
+    imm_parser.add_argument('-pop', '--population', type=int, default=5, help="Population size of the algorithm. Default=5")
+    imm_parser.add_argument('-rho', '--rho', type=int, default=8, help='Mutation rate. Default=8')
+    imm_parser.add_argument('-e', '--epochs', type=int, default=10, help='Number of epochs. Default=10')
 
     # Plot training result 2d
     plot2d_parser = subparser.add_parser('plot2d')
@@ -92,8 +92,8 @@ def switch_command(args):
         commands.cut_cmd(id_vent=args.id_vent, list_edges=args.edges, neighbor_method=args.neighborhood, radius=args.radius)
     elif args.command == "realsim":
         commands.realsim_cmd(id_vent=args.id_vent, real_class=args.realclass, neighbor_method=args.neighborhood, radius=args.radius)
-    elif args.command == "genetic":
-        commands.genetic_train_cmd(id_vent=args.id_vent, size=args.size, step=args.step, population_len=args.population, rho=args.rho, epochs=args.epochs)
+    elif args.command == "immunological":
+        commands.immunological_train_cmd(id_vent=args.id_vent, size=args.size, step=args.step, population_len=args.population, rho=args.rho, epochs=args.epochs)
     elif args.command == "plot2d":
         commands.plot_2d_cmd(metric=args.metric, id_vent=args.id_vent, size=args.size, step=args.step)
     elif args.command == "plot3d":
